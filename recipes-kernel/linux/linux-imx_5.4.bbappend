@@ -152,3 +152,10 @@ SRC_URI_append_lec-imx8mp += " \
 			file://0018-LEC-iMX8MP-Enable-PCIE-compliance-test.patch \
 			file://0019-LEC-iMX8MP-Changes-for-OV13855-camera-sensor.patch \
 "
+
+SRC_URI_append_wifibt = " \
+			file://mxm_wifiex.cfg \
+"
+
+DELTA_KERNEL_DEFCONFIG_append_wifibt = " mxm_wifiex.cfg"
+

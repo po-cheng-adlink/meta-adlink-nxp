@@ -1,9 +1,10 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-#SRCBRANCH_private = "lf_v2021.04-adlink"
-#UBOOT_SRC_private = "git://github.com/ADLINK/u-boot-adlink.git;protocol=https"
-#SRC_URI_private = "${UBOOT_SRC};branch=${SRCBRANCH};user=${PRIVATE_USER}:${PRIVATE_TOKEN};"
-#SRCREV_private = "5f9689b0fd44532af6f4f9aad1cf1ba2d2d0a45e"
+#SRC_URI = "${UBOOT_SRC};branch=${SRCBRANCH}"
+#UBOOT_SRC ?= "git://github.com/nxp-imx/uboot-imx.git;protocol=https"
+#SRCBRANCH = "lf_v2022.04"
+#SRCREV = "181859317bfafef1da79c59a4498650168ad9df6"
+#LOCALVERSION = "-${SRCBRANCH}"
 
 EXTRA_SRC = "${@d.getVarFlag('UBOOT_SRC_PATCHES', d.getVar('MACHINE'), True)}"
 SRC_URI:append = " ${EXTRA_SRC}"

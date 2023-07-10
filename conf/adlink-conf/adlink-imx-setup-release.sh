@@ -9,15 +9,16 @@ if [ -z "$BUILD" ]; then
 	BUILD="build"
 fi
 
-MACHINE=$MACHINE DISTRO=$DISTRO BUILD_DIR=$BUILD source $PROGNAME $@
+EULA=1 MACHINE=$MACHINE DISTRO=$DISTRO BUILD_DIR=$BUILD source $PROGNAME $@
 
-if [ -f ../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/bblayers.conf.append ]; then
-	cat ../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/bblayers.conf.append >> ./conf/bblayers.conf
+CWD=$(pwd)
+if [ -f ${CWD}/../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/bblayers.conf.append ]; then
+	cat ${CWD}/../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/bblayers.conf.append >> ${CWD}/conf/bblayers.conf
 fi
-if [ -f ../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/local.conf.append ]; then
-	cat ../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/local.conf.append >> ./conf/local.conf
+if [ -f ${CWD}/../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/local.conf.append ]; then
+	cat ${CWD}/../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/local.conf.append >> ${CWD}/conf/local.conf
 fi
 
-echo "PA_USER ?= \"adlink-guest\"" >> ./conf/local.conf
-echo "PA_TOKEN ?= \""${TOKEN_PRE}${TOKEN_POST}"\"" >> ./conf/local.conf
+echo "PA_USER ?= \"adlink-guest\"" >> ${CWD}/conf/local.conf
+echo "PA_TOKEN ?= \""${TOKEN_PRE}${TOKEN_POST}"\"" >> ${CWD}/conf/local.conf
 

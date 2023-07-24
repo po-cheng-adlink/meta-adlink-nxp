@@ -20,27 +20,15 @@ SRC_URI += "\
 SD8997_FWDIR := "${@bb.utils.contains('DISTRO_FEATURES', 'fcc', 'FwImageFcc', 'FwImage', d)}"
 
 do_install:append () {
+    # Install NXP Firmware for Wifi/BT (sd8997) (for fcc verification use fcc-wifi_mod_para.conf)
+    install -d ${D}${nonarch_base_libdir}/firmware/nxp
+    for binfile in ${WORKDIR}/adlink-sd8997/${SD8997_FWDIR}/*.bin; do
+        install -m 0644 ${binfile} ${D}${nonarch_base_libdir}/firmware/nxp
+    done
     if [ "${SD8997_FWDIR}" = "FwImageFcc" ]; then
-        # Install NXP Connectivity sd8997 fcc verification firmware
-        install -d ${D}/lib/firmware/nxp
-        for binfile in ${WORKDIR}/adlink-sd8997/${SD8997_FWDIR}/*.bin; do
-            install -m 0644 ${binfile} ${D}/lib/firmware/nxp
-        done
         install -m 0644 ${WORKDIR}/fcc-wifi_mod_para.conf ${D}${nonarch_base_libdir}/firmware/nxp/
     fi
-     if [ "${SD8997_FWDIR}" = "FwImage" ]; then   
-        #Install NXP sd-sd mode Firmware for Wifi/BT (sd8997) 
-            install -d ${D}/lib/firmware/nxp
-        for binfile in ${WORKDIR}/adlink-sd8997/${SD8997_FWDIR}/*.bin; do
-            install -m 0644 ${binfile} ${D}/lib/firmware/nxp
-        done
-    fi	
-    
-    
 }
 
-LICENSE_${PN}-nxp89xx = "Firmware-Marvell"
+LICENSE:${PN}-nxp89xx = "Firmware-Marvell"
 
-FILES_${PN}-nxp89xx:append = " \
-    ${nonarch_base_libdir}/firmware/nxp/ \
-"

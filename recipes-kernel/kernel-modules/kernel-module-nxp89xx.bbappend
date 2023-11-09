@@ -2,15 +2,18 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI:append = " \
-  file://mlan.conf \
   file://moal.conf \
 "
 
-do_install:append:lec-imx8mp () {
-   install -d ${D}${sysconfdir}/modprobe.d
-   # if building wifi/bt, then copy mlan.conf moal.conf
-   install -m 644 ${WORKDIR}/mlan.conf ${D}${sysconfdir}/modprobe.d/
-   install -m 644 ${WORKDIR}/moal.conf ${D}${sysconfdir}/modprobe.d/
+MOD_CONF_FILES = "${@bb.utils.contains('MACHINE_FEATURES', 'wifi', 'moal.conf', '', d)}"
+
+do_install:append () {
+  install -d ${D}${sysconfdir}/modprobe.d
+  # if building wifi/bt, then copy moal.conf
+  for f in "${MOD_CONF_FILES}"; do
+    install -m 644 ${WORKDIR}/${f} ${D}${sysconfdir}/modprobe.d/
+  done
 }
 
-FILES_${PN} += "${sysconfdir}/modprobe.d"
+FILES:${PN} += "${sysconfdir}/modprobe.d/"
+

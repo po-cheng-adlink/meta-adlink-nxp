@@ -6,6 +6,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 #SRCREV = "181859317bfafef1da79c59a4498650168ad9df6"
 #LOCALVERSION = "-${SRCBRANCH}"
 
+UBOOT_SPLASH_IMAGE ?= "splash.bmp"
 EXTRA_SRC = "${@d.getVarFlag('UBOOT_SRC_PATCHES', d.getVar('MACHINE'), True)}"
 SRC_URI:append = " ${EXTRA_SRC}"
 
@@ -50,7 +51,7 @@ do_configure:prepend () {
   #     LPDDR4_2GB, LPDDR4_2GK, LPDDR4_4GB, LPDDR4_8GB
   configs=$(echo "${UBOOT_MACHINE}" | xargs)
   extras=$(echo "${UBOOT_EXTRA_CONFIGS}" | xargs)
-  echo "Add ${extras} to ${configs}"
+  bbnote "Add ${extras} to ${configs}"
   for extra in ${extras}; do
     if [ -n $extra ]; then
       for config in $configs; do
@@ -62,3 +63,13 @@ do_configure:prepend () {
     fi
   done
 }
+
+do_install:append () {
+	install -d ${DEPLOY_DIR_IMAGE}
+	if [ -f ${WORKDIR}/${UBOOT_SPLASH_IMAGE} ]; then
+		install -m 0644 ${WORKDIR}/${UBOOT_SPLASH_IMAGE} ${DEPLOY_DIR_IMAGE}/${UBOOT_SPLASH_IMAGE}
+	else
+		bbwarn "${S}/${UBOOT_SPLASH_IMAGE} not found. No splash image for u-boot"
+	fi
+}
+

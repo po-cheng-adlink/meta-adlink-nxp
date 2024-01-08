@@ -8,7 +8,8 @@ SRC_URI:append = " ${EXTRA_SRC}"
 do_copy_source () {
   configs=$(echo "${UBOOT_MACHINE}" | xargs)
   dtbes=$(echo "${UBOOT_DTB_NAME}" | xargs)
-  bbnote "u-boot dtbes: $dtbes"
+  dtovs=$(echo "${UBOOT_DTB_OVERLAYS}" | xargs)
+  bbnote "u-boot dtbes: $dtbes, u-boot dt-overlays: $dtovs"
 
   # Copy config and dts
   for config in ${configs}; do
@@ -17,7 +18,7 @@ do_copy_source () {
       cp -f ${WORKDIR}/${config} ${S}/configs/
     fi
   done
-  for dtbname in ${dtbes}; do
+  for dtbname in ${dtbes} ${dtovs}; do
     dtsname=$(echo "${dtbname%%.*}.dts")
     if [ -f ${WORKDIR}/$dtsname ]; then
       bbnote "u-boot dts: ${dtsname}"
@@ -71,5 +72,27 @@ do_install:append () {
 	else
 		bbwarn "${S}/${UBOOT_UMS_IMAGE} not found. No ums image for u-boot"
 	fi
+}
+
+do_deploy:append() {
+    # Deploy XX.dtbo for mkimage to generate boot binary
+    if [ -n "${UBOOT_CONFIG}" ]
+    then
+        for config in ${UBOOT_MACHINE}; do
+            i=$(expr $i + 1);
+            for type in ${UBOOT_CONFIG}; do
+                j=$(expr $j + 1);
+                if [ $j -eq $i ]
+                then
+                    install -d ${DEPLOYDIR}/${BOOT_TOOLS}
+                    for dtbo in ${UBOOT_DTB_OVERLAYS}; do
+	                    install -m 0777 ${B}/${config}/arch/arm/dts/${dtbo}  ${DEPLOYDIR}/${BOOT_TOOLS}
+	                done
+                fi
+            done
+            unset  j
+        done
+        unset  i
+    fi
 }
 

@@ -22,3 +22,8 @@ fi
 echo "PA_USER ?= \"adlink-guest\"" >> ${CWD}/conf/local.conf
 echo "PA_TOKEN ?= \""${TOKEN_PRE}${TOKEN_POST}"\"" >> ${CWD}/conf/local.conf
 
+if [ ! -d ${CMD}/../sources/meta-nxp-deskop ]; then
+	echo "BBMASK += \"imx-image-desktop.bbappend\"" >> ${CWD}/conf/local.conf;
+	echo "BBMASK += \"adlink-image-installer.bbappend\"" >> ${CWD}/conf/local.conf;
+fi
+

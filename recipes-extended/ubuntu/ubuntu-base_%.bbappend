@@ -28,6 +28,17 @@ YOCTO-DEPENDS-LIST:remove = " \
 	libdrm-common \
 "
 
+REAL_TIME_EDGE_PACKAGES ?= ""
+REAL_TIME_EDGE_PACKAGES:real-time-edge = " \
+	lldpd \
+	avahi-daemon \
+	avahi-utils \
+	python3-websockets \
+	tcpdump \
+	ebtables \
+	libmodbus5 \
+"
+
 #
 # apt-get packages pulled from ubuntu APT repo
 #
@@ -80,6 +91,7 @@ APTGET_EXTRA_PACKAGES:append = " \
 	gfio \
 	wireless-regdb \
 	yad \
+	${REAL_TIME_EDGE_PACKAGES} \
 "
 # x11-xserver-utils
 

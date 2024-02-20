@@ -117,19 +117,3 @@ APTGET_EXTRA_PACKAGES_REMOVE += " \
 "
 # libdrm-nouveau2 libdrm-radeon1 libdrm-tegra0
 
-#
-# customisation of ubuntu-base images
-#
-FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
-
-SRC_URI += " \
-	file://custom.conf \
-"
-
-fakeroot do_aptget_user_update:prepend() {
-	set -x
-	# /etc/gdm3/custom.conf to autologin
-	install -m 0644 ${WORKDIR}/custom.conf ${D}${sysconfdir}/gdm3/custom.conf
-	set +x
-}
-

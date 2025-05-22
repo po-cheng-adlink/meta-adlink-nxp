@@ -1,0 +1,181 @@
+From 9d1e22341bbea9b77a45402b7b1cd594fe6b5be9 Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Thu, 22 May 2025 11:54:58 +0800
+Subject: [PATCH] sp2-imx8mp: habv4: patch to show addition hab_status event
+ data info
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ arch/arm/include/asm/mach-imx/hab.h | 25 ++++++++--
+ arch/arm/mach-imx/hab.c             | 77 +++++++++++++++++++++++++++++
+ arch/arm/mach-imx/spl.c             |  2 +-
+ 3 files changed, 100 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/include/asm/mach-imx/hab.h b/arch/arm/include/asm/mach-imx/hab.h
+index 2abf28ea45bc..4250db6f9789 100644
+--- a/arch/arm/include/asm/mach-imx/hab.h
++++ b/arch/arm/include/asm/mach-imx/hab.h
+@@ -132,6 +132,25 @@ enum hab_target {
+ 	HAB_TGT_ANY		= 0x55,
+ };
+ 
++enum hab_ctx_cmd {
++	HAB_CMD_SET = 0xb1,			/* Set */
++	HAB_CMD_INS_KEY = 0xbe,		/* Install Key */
++	HAB_CMD_AUT_DAT = 0xca,		/* Authenticate Data */
++	HAB_CMD_WRT_DAT = 0xcc,		/* Write Data */
++	HAB_CMD_CHK_DAT = 0xcf,		/* Check Data */
++	HAB_CMD_NOP = 0xc0,			/* No Operation */
++	HAB_CMD_INIT = 0xb4,		/* Initialize */
++	HAB_CMD_UNLK = 0xb2,		/* Unlock */
++};
++
++enum hab_protocal {
++	HAB_PCL_SRK  = 0x03,		/* SRK certificate format */
++	HAB_PCL_X509 = 0x09,		/* X.509v3 certificate format */
++	HAB_PCL_CMS  = 0xc5,		/* CMS/PKCS#7 signature format */
++	HAB_PCL_BLOB = 0xbb,		/* SHW-specific wrapped key format */
++	HAB_PCL_AEAD = 0xa3,		/* Proprietary AEAD MAC format */
++};
++
+ struct imx_sec_config_fuse_t {
+ 	int bank;
+ 	int word;
+@@ -216,9 +235,9 @@ typedef void hapi_clock_init_t(void);
+ 
+ #define HAB_TAG_RVT          0xDD  /* ROM Vector Table */
+ #define HAB_CMD_HDR          0xD4  /* CSF Header */
+-#define HAB_CMD_WRT_DAT      0xCC  /* Write Data command tag */
+-#define HAB_CMD_CHK_DAT      0xCF  /* Check Data command tag */
+-#define HAB_CMD_SET          0xB1  /* Set command tag */
++//#define HAB_CMD_WRT_DAT      0xCC  /* Write Data command tag */
++//#define HAB_CMD_CHK_DAT      0xCF  /* Check Data command tag */
++//#define HAB_CMD_SET          0xB1  /* Set command tag */
+ #define HAB_PAR_MID          0x01  /* MID parameter value */
+ 
+ #define IVT_SIZE			0x20
+diff --git a/arch/arm/mach-imx/hab.c b/arch/arm/mach-imx/hab.c
+index 27c87f0cd18d..c270a9457ca6 100644
+--- a/arch/arm/mach-imx/hab.c
++++ b/arch/arm/mach-imx/hab.c
+@@ -332,6 +332,37 @@ static char *ctx_str[] = {
+ 			  NULL
+ };
+ 
++static char *ctx_cmd_str[] = {
++			  "CMD = HAB_CMD_SET (0xb1)\n",
++			  "CMD = HAB_CMD_INS_KEY (0xbe)\n",
++			  "CMD = HAB_CMD_AUT_DAT (0xca)\n",
++			  "CMD = HAB_CMD_WRT_DAT (0xcc)\n",
++			  "CMD = HAB_CMD_CHK_DAT (0xcf)\n",
++			  "CMD = HAB_CMD_NOP (0xc0)\n",
++			  "CMD = HAB_CMD_INIT (0xb4)\n",
++			  "CMD = HAB_CMD_UNLK (0xb2)\n",
++			  "CMD = INVALID\n",
++			  NULL
++};
++
++static char *ctx_protocol_str[] = {
++			  "PTCL = HAB_PCL_SRK (0x03)\n",
++			  "PTCL = HAB_PCL_X509 (0x09)\n",
++			  "PTCL = HAB_PCL_CMS (0xc5)\n",
++			  "PTCL = HAB_PCL_BLOB (0xbb)\n",
++			  "PTCL = HAB_PCL_AEAD (0xa3)\n",
++			  "PTCL = INVALID\n",
++			  NULL
++};
++
++static char *ctx_key_str[] = {
++			  "SRK\n",
++			  "CSF\n",
++			  "IMAGE\n",
++			  "INVALID\n",
++			  NULL
++};
++
+ static uint8_t hab_statuses[5] = {
+ 	HAB_STS_ANY,
+ 	HAB_FAILURE,
+@@ -399,6 +430,25 @@ static uint8_t hab_engines[16] = {
+ 	HAB_ENG_SW
+ };
+ 
++static uint8_t hab_ctx_cmd[8] = {
++	HAB_CMD_SET,
++	HAB_CMD_INS_KEY,
++	HAB_CMD_AUT_DAT,
++	HAB_CMD_WRT_DAT,
++	HAB_CMD_CHK_DAT,
++	HAB_CMD_NOP,
++	HAB_CMD_INIT,
++	HAB_CMD_UNLK
++};
++
++static uint8_t hab_protocol[5] = {
++	HAB_PCL_SRK,
++	HAB_PCL_X509,
++	HAB_PCL_CMS,
++	HAB_PCL_BLOB,
++	HAB_PCL_AEAD,
++};
++
+ static inline uint32_t get_idx(uint8_t *list, uint8_t tgt, uint32_t size)
+ {
+ 	uint32_t idx = 0;
+@@ -412,6 +462,32 @@ static inline uint32_t get_idx(uint8_t *list, uint8_t tgt, uint32_t size)
+ 	return idx;
+ }
+ 
++/* parse extended event data */
++static void process_event_record_extra(uint8_t *event_data, size_t bytes)
++{
++	struct record *rec = (struct record *)event_data;
++	uint8_t ctx = rec->contents[2];
++
++	printf("\nextra event data: ctx(0x%x), (%lu) bytes\n", ctx, bytes);
++	if (ctx == HAB_CTX_COMMAND) {
++		printf("\n%s", ctx_cmd_str[get_idx(hab_ctx_cmd, rec->contents[4], ARRAY_SIZE(hab_ctx_cmd))]);
++		printf("Length = %u\n", ((rec->contents[5] << 8) + rec->contents[6]));
++		printf("Key Index = (%u) %s", rec->contents[8], ctx_key_str[rec->contents[8]]);
++		printf("%s", ctx_protocol_str[get_idx(hab_protocol, rec->contents[9], ARRAY_SIZE(hab_protocol))]);
++		printf("%s", eng_str[get_idx(hab_engines, rec->contents[10], ARRAY_SIZE(hab_engines))]);
++		printf("Signature Offset: 0x%08x\n", ((rec->contents[12] << 24) + (rec->contents[13] << 16) + (rec->contents[14] << 8) + rec->contents[15]));
++		printf("Block Start Addr: 0x%08x\n", ((rec->contents[16] << 24) + (rec->contents[17] << 16) + (rec->contents[18] << 8) + rec->contents[19]));
++		printf("Block Length: 0x%08x\n", ((rec->contents[20] << 24) + (rec->contents[21] << 16) + (rec->contents[22] << 8) + rec->contents[23]));
++	} else if (ctx == HAB_CTX_ASSERT) {
++		printf("\nAddress Event Addr: 0x%08x\n", ((rec->contents[8] << 24) + (rec->contents[9] << 16) + (rec->contents[10] << 8) + rec->contents[11]));
++		printf("Block Length: 0x%08x\n", ((rec->contents[12] << 24) + (rec->contents[13] << 16) + (rec->contents[14] << 8) + rec->contents[15]));
++		if (bytes > 0 && bytes <= 28) {
++			printf("Address Event Addr2: 0x%08x\n", ((rec->contents[16] << 24) + (rec->contents[17] << 16) + (rec->contents[18] << 8) + rec->contents[19]));
++			printf("Block Length2: 0x%08x\n", ((rec->contents[20] << 24) + (rec->contents[21] << 16) + (rec->contents[22] << 8) + rec->contents[24]));
++		}
++	}
++}
++
+ static void process_event_record(uint8_t *event_data, size_t bytes)
+ {
+ 	struct record *rec = (struct record *)event_data;
+@@ -443,6 +519,7 @@ static void display_event(uint8_t *event_data, size_t bytes)
+ 	}
+ 
+ 	process_event_record(event_data, bytes);
++	process_event_record_extra(event_data, bytes);
+ }
+ 
+ static int get_hab_status(void)
+diff --git a/arch/arm/mach-imx/spl.c b/arch/arm/mach-imx/spl.c
+index 919eb6180e0c..f35dc10ba5de 100644
+--- a/arch/arm/mach-imx/spl.c
++++ b/arch/arm/mach-imx/spl.c
+@@ -5,7 +5,7 @@
+  *
+  * Author: Tim Harvey <tharvey@gateworks.com>
+  */
+-
++#define DEBUG
+ #include <common.h>
+ #include <hang.h>
+ #include <init.h>
+-- 
+2.25.1
+

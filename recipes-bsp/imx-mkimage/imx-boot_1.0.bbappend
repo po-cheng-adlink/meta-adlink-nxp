@@ -2,6 +2,8 @@
 
 do_replace () {
     sed -i 's|dtbs ?=.*|dtbs ?= ${UBOOT_DTB_NAME}|g' ${BOOT_STAGING}/soc.mak
+    sed -i 's|fdtoverlay.*|fdtoverlay -i $(dtbs) -o $(dtbs) signature.dtbo|g' ${BOOT_STAGING}/soc.mak
+    sed -i "s|^KEY_EXISTS.*|KEY_EXISTS=\$(sh -c 'if ls CRT\.\* \&> /dev/null 2>\&1; then echo exist; else echo noexist; fi')|g" ${BOOT_STAGING}/soc.mak
 }
 addtask replace before do_compile after do_configure
 

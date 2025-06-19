@@ -13,6 +13,7 @@ do_install:append () {
     install -m 0755 ${WORKDIR}/start_isp.sh ${D}/opt/imx8-isp/bin/
 }
 
+RDEPENDS:${PN} += "bash"
 
 FILES_SOLIBS_VERSIONED:append = " ${libdir}/libimx678.so"
 

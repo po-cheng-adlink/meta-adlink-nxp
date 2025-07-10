@@ -407,7 +407,16 @@
 
 /* usb host for usb-hub co-lay */
 &usbotg2 {
+	dr_mode = "host";
 	status = "okay";
+};
+
+&usbphynop1 {
+    status = "okay";
+};
+
+&usbphynop2 {
+    status = "okay";
 };
 
 /* SDCard */

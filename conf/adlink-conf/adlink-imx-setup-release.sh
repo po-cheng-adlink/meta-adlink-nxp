@@ -52,6 +52,61 @@ fi
 # nxp-wlan-sdk bbappend is not buildable, mask it
 echo "BBMASK += \"nxp-wlan-sdk_%.bbappend\"" >> ./conf/local.conf
 
+
+# Enable meta-eiq-genai-flow layer if ENABLE_SOME_LAYER is set
+if [ "$NEUTRON_EIQ_DEMO" = "1" ]; then
+    echo "Enabling meta-eiq-genai-flow layer for Neutron support..."
+ 
+    # Add the layer path to bblayers.conf if not already present
+    if ! grep -q "meta-eiq-genai-flow" ./conf/bblayers.conf; then
+        echo "BBLAYERS += \"\${BSPDIR}/sources/dm-eiq-genai-flow-demonstrator/meta-eiq-genai-flow\"" >> ./conf/bblayers.conf
+    fi
+
+    if ! grep -q "meta-adlink-eiq-genai-flow" ./conf/bblayers.conf; then
+        echo "BBLAYERS += \"\${BSPDIR}/sources/meta-adlink-eiq-genai-flow\"" >> ./conf/bblayers.conf
+    fi
+
+ 
+    # Set Neutron support in local.conf
+    echo "NEUTRON_SUPPORT = \"1\"" >> ./conf/local.conf
+    
+   # Add packages for Neutron EIQ demo
+    echo 'IMAGE_INSTALL:append = " alsa-lib-dev eiq-genai-flow-dep"' >> ./conf/local.conf
+
+    # Mask unwanted bbappend for Neutron support
+    echo "BBMASK += \".*meta-eiq-genai-flow.*/linux-imx_6.12.bbappend\"" >> ./conf/local.conf
+
+    echo "BBMASK += \"dm-eiq-genai-flow-demonstrator/meta-eiq-genai-flow/recipes-libraries/neutron/neutron_1.0.0.bbappend\"" >> ./conf/local.conf
+
+     #Automatically add scarthgap compatibility to layer.conf
+    export BSPDIR="$(pwd)"
+# Path to the layer.conf file
+    LCONF="${BSPDIR}/../sources/dm-eiq-genai-flow-demonstrator/meta-eiq-genai-flow/conf/layer.conf"
+
+# Check if file exists
+    if [ -f "$LCONF" ]; then
+    # Check if the line exists
+    if grep -q 'LAYERSERIES_COMPAT_meta-eiq-genai-flow' "$LCONF"; then
+        # Only add 'scarthgap' if it's not already there
+        if ! grep -q 'scarthgap' "$LCONF"; then
+            sed -i 's/\(LAYERSERIES_COMPAT_meta-eiq-genai-flow *= *"[^"]*\)"/\1 scarthgap"/' "$LCONF"
+            echo "scarthgap added to existing LAYERSERIES_COMPAT"
+        else
+            echo "scarthgap already present, no changes made"
+        fi
+    else
+        # Add a new line if LAYERSERIES_COMPAT is missing
+        echo '' >> "$LCONF"
+        echo 'LAYERSERIES_COMPAT_meta-eiq-genai-flow = "scarthgap"' >> "$LCONF"
+        echo "Added new LAYERSERIES_COMPAT line with scarthgap"
+    fi
+else
+    echo "$LCONF not found. Skipping patch."
+fi
+
+fi
+
+
 # hook the nxp hab boot stuff
 if [ "$HAB" = "1" ]; then
 	echo "IMAGE_FEATURES[validitems] += \"hab\"" >> ./conf/local.conf

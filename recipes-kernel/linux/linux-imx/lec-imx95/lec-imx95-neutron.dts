@@ -1,0 +1,20 @@
+/dts-v1/;
+#include "lec-imx95-lt9611.dts"
+ 
+/ {
+    reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+ 
+        neutron_mem: neutron_memory@e0000000 {
+            compatible = "shared-dma-pool";
+            reusable;
+            reg = <0x0 0xe0000000 0x0 0x20000000>;
+        };
+    };
+};
+ 
+&neutron {
+    memory-region = <&neutron_mem>;
+};

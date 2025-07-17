@@ -78,6 +78,8 @@ if [ "$NEUTRON_EIQ_DEMO" = "1" ]; then
 
     echo "BBMASK += \"dm-eiq-genai-flow-demonstrator/meta-eiq-genai-flow/recipes-libraries/neutron/neutron_1.0.0.bbappend\"" >> ./conf/local.conf
 
+    echo "BBMASK += \".*meta-eiq-genai-flow.*/imx-image-full-eiq-genai-flow-dep.bb\"" >> ./conf/local.conf
+    
      #Automatically add scarthgap compatibility to layer.conf
     export BSPDIR="$(pwd)"
 # Path to the layer.conf file

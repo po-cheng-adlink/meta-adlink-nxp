@@ -1026,6 +1026,7 @@
 	pinctrl-0 = <&pinctrl_uart4>;
 	assigned-clocks = <&clk IMX8MP_CLK_UART4>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
@@ -1354,6 +1355,8 @@
 			fsl,pins = <
 			MX8MP_IOMUXC_UART4_RXD__UART4_DCE_RX	0x116 //0x140
 			MX8MP_IOMUXC_UART4_TXD__UART4_DCE_TX	0x116 //0x140
+                        MX8MP_IOMUXC_NAND_DATA03__UART4_DCE_RTS 0x116
+                        MX8MP_IOMUXC_NAND_DATA02__UART4_DCE_CTS 0x116
 		>;
 	};
 

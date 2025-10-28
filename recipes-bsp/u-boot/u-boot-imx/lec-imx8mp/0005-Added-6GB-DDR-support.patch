@@ -1,0 +1,46 @@
+From 541c86db4f376ba48e32e6e69bd177a08a323296 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Tue, 28 Oct 2025 18:49:29 +0530
+Subject: [PATCH 5/5] Added 6GB DDR support
+
+---
+ board/adlink/lec-imx8mp/Makefile | 1 +
+ include/configs/lec-imx8mp.h     | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/board/adlink/lec-imx8mp/Makefile b/board/adlink/lec-imx8mp/Makefile
+index 49237a04a22..20be494639c 100644
+--- a/board/adlink/lec-imx8mp/Makefile
++++ b/board/adlink/lec-imx8mp/Makefile
+@@ -11,5 +11,6 @@ obj-y += spl.o
+ obj-$(CONFIG_LPDDR4_2GB) += lpddr4_timing_MT53D512M32D2DS-053_WTD_1500MHz.o
+ obj-$(CONFIG_LPDDR4_2GK) += lpddr4_timing_MT53D512M32D2DS-046_ITD_2000MHz.o
+ obj-$(CONFIG_LPDDR4_4GB) += lpddr4_timing_MT53D1024M32D4DT-053_WTD_1500MHz.o
++obj-$(CONFIG_LPDDR4_6GB) += lpddr4_timing_MT53E1536M32D4DT‐046_AIT_2133MHz.o
+ obj-$(CONFIG_LPDDR4_8GB) += lpddr4_timing_MT53E2G32D4DT-046_WTA_2000MHz.o
+ endif
+diff --git a/include/configs/lec-imx8mp.h b/include/configs/lec-imx8mp.h
+index a0ee841f0b5..e0a32f378d8 100644
+--- a/include/configs/lec-imx8mp.h
++++ b/include/configs/lec-imx8mp.h
+@@ -205,6 +205,8 @@
+ #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
+ #elif defined(CONFIG_LPDDR4_8GB)
+ #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
++#elif defined(CONFIG_LPDDR4_6GB)
++#define PHYS_SDRAM_SIZE			0xC0000000      /* 3 GB */
+ #else
+ #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
+ #endif
+@@ -218,6 +220,8 @@
+ #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
+ #elif defined(CONFIG_LPDDR4_8GB)
+ #define PHYS_SDRAM_2_SIZE		0x140000000	/* 5 GB */
++#elif defined(CONFIG_LPDDR4_6GB)
++#define PHYS_SDRAM_2_SIZE		0xC0000000      /* 3 GB */
+ #else
+ #define PHYS_SDRAM_2_SIZE		0xC0000000	/* 3 GB */
+ #endif
+-- 
+2.25.1
+

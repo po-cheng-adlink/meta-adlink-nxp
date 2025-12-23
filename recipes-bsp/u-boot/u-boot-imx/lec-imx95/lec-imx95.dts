@@ -47,9 +47,33 @@
 		regulator-name = "USB_VBUS";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&i2c7_pcal6524 3 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
+	};
+
+	reg_aqr_stby: regulator-aqr-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "aqr-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+	};
+
+	reg_aqr_en: regulator-aqr-en {
+		compatible = "regulator-fixed";
+		regulator-name = "aqr-en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&reg_aqr_stby>;
+		enable-active-high;
+	};
+
+	reg_serdes_stby: regulator-mac-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "mac-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&i2c7_pcal6524 13 GPIO_ACTIVE_LOW>;
 	};
 };
 
@@ -63,7 +87,7 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
-		spi-max-frequency = <20000000>;
+		spi-max-frequency = <200000000>;
 		spi-tx-bus-width = <1>;
 		spi-rx-bus-width = <1>;
 	};
@@ -94,7 +118,6 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c3>;
 	pinctrl-1 = <&pinctrl_lpi2c3>;
-	status = "okay";
 
 	i2c3_gpio_expander_20: i2c3-gpio-expander@20 {
 		compatible = "nxp,pcal6408";
@@ -112,7 +135,6 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c4>;
 	pinctrl-1 = <&pinctrl_lpi2c4>;
-	status = "okay";
 
 	i2c4_gpio_expander_21: i2c4-gpio-expander@21 {
 		compatible = "nxp,pcal6408";
@@ -136,7 +158,6 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c5>;
 	pinctrl-1 = <&pinctrl_lpi2c5>;
-	status = "okay";
 
 	i2c5_gpio_expander_21: i2c5-gpio-expander@21 {
 		compatible = "nxp,pcal6408";
@@ -156,7 +177,6 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c6>;
 	pinctrl-1 = <&pinctrl_lpi2c6>;
-	status = "okay";
 
 	i2c6_gpio_expander_21: i2c6-gpio-expander@21 {
 		compatible = "nxp,pcal6416";
@@ -180,7 +200,6 @@
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpi2c7>;
 	pinctrl-1 = <&pinctrl_lpi2c7>;
-	status = "okay";
 
 	i2c7_pcal6524: i2c7-gpio@22 {
 		compatible = "nxp,pcal6524";
@@ -195,40 +214,11 @@
 		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
 	};
 
-	ptn5110: tcpc@50 {
-		compatible = "nxp,ptn5110";
-		reg = <0x50>;
-		interrupt-parent = <&gpio5>;
-		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ptn5110>;
-
-		port {
-			typec_dr_sw: endpoint {
-				remote-endpoint = <&usb3_drd_sw>;
-			};
-		};
-
-		typec1_con: connector {
-			compatible = "usb-c-connector";
-			label = "USB-C";
-			power-role = "dual";
-			data-role = "dual";
-			try-power-role = "sink";
-			source-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
-			sink-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)
-				     PDO_VAR(5000, 20000, 3000)>;
-			op-sink-microwatt = <15000000>;
-			self-powered;
-		};
-	};
-
 	/* SI5332 */
 };
 
 &usb2 {
 	dr_mode = "host";
-	vbus-supply = <&reg_usb_vbus>;
 	hnp-disable;
 	srp-disable;
 	adp-disable;
@@ -245,7 +235,7 @@
 };
 
 &usb3_dwc3 {
-	dr_mode = "otg";
+	dr_mode = "host";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
@@ -254,12 +244,6 @@
 	snps,dis-u1-entry-quirk;
 	snps,dis-u2-entry-quirk;
 	status = "okay";
-
-	port {
-		usb3_drd_sw: endpoint {
-			remote-endpoint = <&typec_dr_sw>;
-		};
-	};
 };
 
 &lpuart1 {
@@ -301,35 +285,34 @@
 };
 
 &enetc_port1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_enetc1>;
-	phy-handle = <&ethphy1>;
-	phy-mode = "rgmii-id";
-	status = "okay";
-};
-
-&enetc_port2 {
-	phy-handle = <&ethphy2>;
-	phy-mode = "usxgmii";
-	managed = "in-band-status";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_enetc1>;
+ 	phy-handle = <&ethphy1>;
+ 	phy-mode = "rgmii-id";
+ 	status = "okay";
 };
 
 &netc_emdio {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_emdio>;
+	status = "okay";
+
 	ethphy0: ethernet-phy@1 {
 		reg = <1>;
 		eee-broken-1000t;
-		reset-gpios = <&i2c5_gpio_expander_21 2 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;
 		reset-deassert-us = <80000>;
 	};
-	ethphy1: ethernet-phy@4 {
-		reg = <4>;
-		eee-broken-1000t;
-		reset-gpios = <&i2c5_gpio_expander_21 2 GPIO_ACTIVE_LOW>;
-		reset-assert-us = <10000>;
-		reset-deassert-us = <80000>;
-	};
+
+ 	ethphy1: ethernet-phy@4 {
+ 		reg = <4>;
+ 		eee-broken-1000t;
+ 		reset-assert-us = <10000>;
+ 		reset-deassert-us = <80000>;
+ 	};
+
 	ethphy2: ethernet-phy@8 {
+		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <8>;
 	};
 };
@@ -365,8 +348,8 @@
 
 	pinctrl_lpi2c3: lpi2c3grp {
 		fsl,pins = <
-			IMX95_PAD_GPIO_IO00__LPI2C3_SDA			0x40000b9e
-			IMX95_PAD_GPIO_IO01__LPI2C3_SCL			0x40000b9e
+			IMX95_PAD_GPIO_IO28__LPI2C3_SDA			0x40000b9e
+			IMX95_PAD_GPIO_IO29__LPI2C3_SCL			0x40000b9e
 		>;
 	};
 
@@ -405,10 +388,15 @@
 		>;
 	};
 
-	pinctrl_enetc0: enetc0grp {
+	pinctrl_emdio: emdiogrp{
 		fsl,pins = <
 			IMX95_PAD_ENET1_MDC__NETCMIX_TOP_NETC_MDC		0x57e
-			IMX95_PAD_ENET1_MDIO__NETCMIX_TOP_NETC_MDIO		0x57e
+			IMX95_PAD_ENET1_MDIO__NETCMIX_TOP_NETC_MDIO		0x97e
+		>;
+	};
+
+	pinctrl_enetc0: enetc0grp {
+		fsl,pins = <
 			IMX95_PAD_ENET1_TD3__NETCMIX_TOP_ETH0_RGMII_TD3		0x57e
 			IMX95_PAD_ENET1_TD2__NETCMIX_TOP_ETH0_RGMII_TD2		0x57e
 			IMX95_PAD_ENET1_TD1__NETCMIX_TOP_ETH0_RGMII_TD1		0x57e

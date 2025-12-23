@@ -43,7 +43,8 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
-
+		pinctrl-0 = <&pinctrl_gpios>; // use this driver to initial some gpio pads
+		
 		key_sleep {
 			label = "SLEEP";
 			linux,code = <KEY_SLEEP>;
@@ -54,13 +55,13 @@
 
 	leds {
 		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_leds>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&pinctrl_leds>;
 
 		led-1 {
 			label = "sys_status_1v8";
 			default-state = "on";
-			gpios = <&gpio5 7 GPIO_ACTIVE_HIGH>;
+			gpios = <&i2c3_adl1000 16 GPIO_ACTIVE_HIGH>;
 		};
 
 	};
@@ -190,7 +191,6 @@
 		/*
 		gpio = <&i2c7_pcal6524 3 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
-		regulator-always-on;
 		*/
 	};
 
@@ -330,7 +330,7 @@
 		/* GPIO Expander  Mapping :
 		 * - 0: ENET1_RST_B_3V			=>			U2001
 		 * - 1: ENET2_RST_B_3V			=>			U2101			
-		 * - 2: USB_HUB_RST#_3V			=>			U1800			
+		 * - 2: SERDES_RST#_3V			=>			SMARC S77 PCIE_C_RST
 		 * - 3: RC210_EN_3V			=>			U1300 ,RC21008B001GND
 		 * - 4: LT9611_RSTN_3V			=>			U1500
 		 * - 5: HDMI_INT_3V				<= 			U1500
@@ -377,6 +377,13 @@
 		tpm-supply = <&reg_tpm_rst>;
 		status = "okay";
 	};
+        eeprom@50 {
+            compatible = "atmel,24c128";
+            reg = <0x50>;
+            pagesize = <64>;
+            //wp-gpios = <&i2c3_adl1000 14 GPIO_ACTIVE_HIGH>;
+            num-addresses = <1>;
+        };
 };
 
 &lpi2c3 {
@@ -390,7 +397,7 @@
 
 	/*U1001 ADLINK MCU GPIO */
 	i2c3_adl1000: i2c3_adl1000@20 {
-		compatible = "adlink,adl1000";
+		compatible = "adlink,adl1000";//24 pin
 		pinctrl-names = "default";
 		//interrupt pin A3, A4, B0, B1, B2, B5, B6, B10, B11, B12, B13, B14, B15
 		//INT : PC2 , SCL : PB8 , SDA : PB9
@@ -400,7 +407,7 @@
 		 * - 2: PA3(int)	CN_GPIO13_1V8			=>			SMARC S123 GPIO13
 		 * - 3: PA4(int) 	CN_GPIO12_1V8			=>			SMARC S142 GPIO12
 		 * - 4: PA5 		Detect_SYS_1V8			<=			R1040 VDD_1V8_S
-		 * - 5: PA6 		MCU_PWRBTN_ON_1V8		=>			R2812 U2802(AND gate) PMIC_ON_MCU_1V8
+		 * - 5: PA2 		FAN_PWM_MCU_1V8	(A2)	=>			NI => CN_GPIO5_PWM_1V8 (SMARC P113)
 		 * - 6: PA7 		ETH_CLK_EN_1V8			=>			U1300 RC21008B001GND#BB0_RENESAS GPIO4
 		 * - 7: PA10 		ONOFF_1V8	    		=> 			U600 (IMX95)
 
@@ -410,12 +417,12 @@
 		 * - 11: PB1(int) 	CN_GPIO1_CAM1_PWR#_1V8			=> 	SMARC P109 CAM1_PWR
 		 * - 12: PB2(int) 	CN_GPIO2_CAM0_RST#_1V8			=> 	SMARC P110 CAM0_RST
 		 * - 13: PB5(int) 	CN_GPIO3_CAM1_RST#_1V8			=>  SMARC P111 CAM1_RST
-		 * - 14: PB6(int) 	CN_GPIO4_1V8			=> 			SMARC P112 GPIO4
+		 * - 14: PB12 		EEPROM_WP				=>			U1601
 		 * - 15: PB10(int) 	CN_GPIO11_1V8			=>			SMARC P119 GPIO11
 
-		 * - 16: PB11(int) 	CN_GPIO6_1V8			=>			SMARC P114 GPIO6
-		 * - 17: PB12(int) 	CN_GPIO7_1V8			=>			SMARC P115 GPIO7
-		 * - 18: PB13(int) 	CN_GPIO8_1V8			=> 			SMARC P116 GPIO8
+		 * - 16: PB11(int) 	SYS_STATUS_1V8 (A2)		=>			Q1700 LED1700
+		 * - 17: PB3 	R1097/R1096			(A2)
+		 * - 18: PB4 	R1099/R1098			(A2)
 		 * - 19: PB14(int) 	CN_GPIO9_1V8    		=>			SMARC P117 GPIO9
 		 * - 20: PB15(int) 	CN_GPIO10_1V8			=>			SMARC P118 GPIO10
 		 * - 21: PC3 		HOST_WAKE_BT_IN#_1V8	=>			U1900 AW-CM276NF pull-up
@@ -454,7 +461,9 @@
 	pinctrl-1 = <&pinctrl_lpi2c8>;
 	status = "okay";
 
-	/*U1001 ADLINK MCU UART */
+/*U1001 ADLINK MCU UART */
+// removed A2
+/*
 	i2c8_adl1001: i2c8_adl1001@48 {
 		compatible = "adlink,adl1001";
 		pinctrl-names = "default";
@@ -464,6 +473,7 @@
 		interrupt-parent = <&gpio5>;
 		interrupts = <14 IRQ_TYPE_EDGE_FALLING>; //MCU_INTB2_1V8 , PD2
 	};
+*/
 	/* SMARC BB CN1701 */
     tlv320aic3x07: tlv320aic310x@18 {
 		clock-names = "mclk";
@@ -518,11 +528,17 @@
 	pinctrl-0 = <&pinctrl_uart1>;
 	status = "okay";
 };
+&lpuart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	status = "okay";
+};
 
+//M7 console, default disable
 &lpuart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
-	status = "okay";
+	//status = "okay";
 };
 
 /*U1900 AW-CM276NF*/
@@ -540,6 +556,12 @@
 &lpuart7 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart7>;
+	status = "okay";
+};
+//SMARC SER2 , share pins with lpspi7 in A2 ,default enable
+&lpuart6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart6>;
 	status = "okay";
 };
 //SMARC SPI0
@@ -562,14 +584,14 @@
 	};
 
 };
-//SMARC SPI1
+//SMARC SPI1 , share pins with uart6 in A2 ,default disable
 &lpspi7 {
 	fsl,spi-num-chipselects = <2>;
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&pinctrl_lpspi7>;
 	pinctrl-1 = <&pinctrl_lpspi7>;
 	cs-gpios = <&gpio2 4 GPIO_ACTIVE_LOW>,<&gpio2 25 GPIO_ACTIVE_LOW>;
-	status = "okay";
+//	status = "okay";
     
 	spidev@0 {
                 compatible = "rohm,dh2228fv";
@@ -583,6 +605,7 @@
                 reg = <1>;
 	};
 };
+
 
 &mu7 {
 	status = "okay";
@@ -619,10 +642,10 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz", "sleep";
-	pinctrl-0 = <&pinctrl_usdhc3>;
-	pinctrl-1 = <&pinctrl_usdhc3>;
-	pinctrl-2 = <&pinctrl_usdhc3_200mhz>;
-	pinctrl-3 = <&pinctrl_usdhc3>;
+	pinctrl-0 = <&pinctrl_usdhc3>,<&pinctrl_usdhc3_susclk>;
+	pinctrl-1 = <&pinctrl_usdhc3>,<&pinctrl_usdhc3_susclk>;
+	pinctrl-2 = <&pinctrl_usdhc3_200mhz>,<&pinctrl_usdhc3_susclk>;
+	pinctrl-3 = <&pinctrl_usdhc3>,<&pinctrl_usdhc3_susclk>;
 	keep-power-in-suspend;
 	wakeup-source;
 
@@ -663,6 +686,7 @@
 	phy-mode = "10gbase-r";
 	serdes-supply = <&reg_serdes_en>;
 	managed = "in-band-status";
+	reset-gpio = <&i2c2_gpio_expander_71 2 GPIO_ACTIVE_LOW>; //SERDES_RST#_3V
 	//status = "okay";
 };
 
@@ -684,7 +708,6 @@
 	/*U2001 RTL8211FI-CG_REALTEK*/
 	ethphy0: ethernet-phy@1 {
 		reg = <1>;
-		eee-broken-1000t;
 		
 		reset-gpios = <&i2c2_gpio_expander_71 0 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;
@@ -693,11 +716,12 @@
 		interrupts = <16 IRQ_TYPE_EDGE_FALLING>;
 
 		realtek,clkout-disable;
+		adlink,led = <0x4f20 0x205b>;
+		compatible = "ethernet-phy-id001c.c916";//RTL8211
 	};
 	/*U2101 RTL8211FI-CG_REALTEK*/
 	ethphy1: ethernet-phy@4 {
 		reg = <4>;
-		eee-broken-1000t;
 		
 		reset-gpios = <&i2c2_gpio_expander_71 1 GPIO_ACTIVE_LOW>;
 		reset-assert-us = <10000>;
@@ -706,6 +730,8 @@
 		interrupts = <17 IRQ_TYPE_EDGE_FALLING>;
 
 		realtek,clkout-disable;
+		adlink,led = <0x4f20 0x205b>;
+		compatible = "ethernet-phy-id001c.c916";//RTL8211
 	};
 //SMARC
 	ethphy2: ethernet-phy@8 {
@@ -800,7 +826,12 @@
 };
 //4c1f0040
 &usb3_phy {
-	fsl,phy-tx-vref-tune-percent = <0x73>;
+//	fsl,phy-tx-vref-tune-percent = <0x73>;
+	fsl,phy-pcs-tx-deemph-3p5db-attenuation-db = <17>;
+	fsl,phy-pcs-tx-swing-full-percent = <100>;
+	fsl,phy-tx-preemp-amp-tune-microamp = <600>;
+	fsl,phy-tx-vboost-level-microvolt = <1156>;
+
 	status = "okay";
 };
 //4c100000 USB1 controller
@@ -828,6 +859,7 @@
 
 	pinctrl_gpio8_int: gpio8grp {
 		fsl,pins = <
+		//SMARC GPIO5 for iPI SMARC plus external gpio's interrupt pin
 			IMX95_PAD_GPIO_IO22__GPIO2_IO_BIT22			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
 		>;
 	};
@@ -880,6 +912,13 @@
 		>;
 	};
 
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			IMX95_PAD_UART2_RXD__AONMIX_TOP_LPUART2_RX      0x31e
+			IMX95_PAD_UART2_TXD__AONMIX_TOP_LPUART2_TX      0x31e
+		>;
+	};
+
 	pinctrl_uart3: uart3grp {
 		fsl,pins = <
 			IMX95_PAD_GPIO_IO15__LPUART3_RX      0x31e
@@ -893,6 +932,15 @@
 			IMX95_PAD_DAP_TDI__LPUART5_RX				0x31e
 			IMX95_PAD_DAP_TMS_SWDIO__LPUART5_RTS_B			0x31e
 			IMX95_PAD_DAP_TCLK_SWCLK__LPUART5_CTS_B			0x31e
+		>;
+	};
+
+	pinctrl_uart6: uart6grp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO04__LPUART6_TX			0x31e
+			IMX95_PAD_GPIO_IO05__LPUART6_RX				0x31e
+			IMX95_PAD_GPIO_IO07__LPUART6_RTS_B			0x31e
+			IMX95_PAD_GPIO_IO06__LPUART6_CTS_B			0x31e
 		>;
 	};
 
@@ -1009,6 +1057,7 @@
 	pinctrl_ethphy0: ethphy0grp {
 		fsl,pins = <
 			IMX95_PAD_GPIO_IO36__GPIO5_IO_BIT16			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//IMX95_PAD_CCM_CLKO3__NETCMIX_TOP_NETC_TMR_1588_TRIG2	0x57e
 		>;
 	};
 	pinctrl_ethphy1: ethphy1grp {
@@ -1025,11 +1074,6 @@
 	pinctrl_i2c3_adl1000: i2c8adl1000grp {
 		fsl,pins = <
 			IMX95_PAD_GPIO_IO33__GPIO5_IO_BIT13			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
-		>;
-	};
-	pinctrl_mipi_dsi_csi: mipidsigrp {
-		fsl,pins = <
-			IMX95_PAD_CCM_CLKO2__GPIO3_IO_BIT27			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
 		>;
 	};
 
@@ -1120,7 +1164,26 @@
 
 	pinctrl_leds: ledsgrp {
 		fsl,pins = <
+//			IMX95_PAD_XSPI1_DATA7__GPIO5_IO_BIT7			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+		>;
+	};
+
+	pinctrl_gpios: gpiosgrp {
+		fsl,pins = <
+			//SMARC GPIO4
+			IMX95_PAD_GPIO_IO34__GPIO5_IO_BIT14			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//SMARC GPIO6
 			IMX95_PAD_XSPI1_DATA7__GPIO5_IO_BIT7			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//SMARC GPIO8
+			IMX95_PAD_GPIO_IO15__GPIO2_IO_BIT15			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//SMARC GPIO7
+			IMX95_PAD_GPIO_IO14__GPIO2_IO_BIT14			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//SMARC GPIO9
+			IMX95_PAD_CCM_CLKO2__GPIO3_IO_BIT27			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//IMX95_PAD_CCM_CLKO2__NETCMIX_TOP_NETC_TMR_1588_PP1	0x57e
+			//SMARC GPIO10
+			IMX95_PAD_CCM_CLKO4__GPIO4_IO_BIT29			0x1fe	//not pull down,not pull up ,Fast slew rate, drive X6
+			//IMX95_PAD_CCM_CLKO4__NETCMIX_TOP_NETC_TMR_1588_PP2	0x57e
 		>;
 	};
 
@@ -1164,7 +1227,12 @@
 			IMX95_PAD_SD3_DATA3__USDHC3_DATA3			0x13fe
 		>;
 	};
-
+	//setup up susclk at sram1
+	pinctrl_usdhc3_susclk: usdhc3grp-susclk {
+		fsl,pins = <
+			IMX95_PAD_CCM_CLKO3__CCMSRCGPCMIX_TOP_CLKO_3	0x31e
+		>;
+	};
 	pinctrl_usdhc2_100mhz: usdhc2-100mhzgrp {
 		fsl,pins = <
 			IMX95_PAD_SD2_CLK__USDHC2_CLK				0x158e
@@ -1261,5 +1329,12 @@
 	fsl,sai-mclk-direction-output;
 	status = "okay";
 };
-
+&sram1 {
+	//setup 32k susclock for wifi
+       clocks = <&scmi_clk IMX95_CLK_CCMCKO3>;
+       assigned-clocks = <&scmi_clk IMX95_CLK_CCMCKO3>;
+       assigned-clock-parents = <&scmi_clk IMX95_CLK_32K>;
+       assigned-clock-rates = <32000>;
+       status = "okay";
+};
 

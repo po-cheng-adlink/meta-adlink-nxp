@@ -29,6 +29,18 @@
 			sound-dai = <&lt9611_codec 0>;
 		};
 	};
+	/*
+	reg_mux_sel: regulator-mux-sel {
+		compatible = "regulator-fixed";
+		regulator-name = "mux-sel-hdmi";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		//need to check with MCU for the gpio define of PA9 
+		gpio = <&i2c3_adl1000 16 GPIO_ACTIVE_LOW>;//CN_GPIO6_1V8
+		enable-active-low;
+		regulator-always-on;
+	};
+	*/
 
 };
 
@@ -57,9 +69,6 @@
 		reg = <0x3b>;
 		interrupts-extended = <&i2c2_gpio_expander_71 5 IRQ_TYPE_EDGE_FALLING>;
 		reset-gpios = <&i2c2_gpio_expander_71 4 GPIO_ACTIVE_LOW>;
-
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_mipi_dsi_csi>;
 
 		clocks = <&scmi_clk IMX95_CLK_DISP1PIX>, <&scmi_clk IMX95_CLK_VIDEOPLL1_VCO>, <&scmi_clk IMX95_CLK_VIDEOPLL1>;
 		clock-names = "pix","vco","videopll1";

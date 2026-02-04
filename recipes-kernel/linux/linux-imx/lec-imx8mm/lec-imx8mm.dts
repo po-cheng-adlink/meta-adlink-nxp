@@ -540,8 +540,9 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie0>;
 	disable-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
-    /* MX8MM_IOMUXC_SAI2_TXD0_GPIO4_IO26(PCIe_RST#) */
+        /* MX8MM_IOMUXC_SAI2_TXD0_GPIO4_IO26(PCIe_RST#) */
 	reset-gpio = <&gpio4 26 GPIO_ACTIVE_LOW>;
+        host-wake-gpio = <&gpio2 8  GPIO_ACTIVE_HIGH>;
 	clkreq-gpio = <&gpio5 20 GPIO_ACTIVE_LOW>;
 	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>,
 		 <&clk IMX8MM_CLK_PCIE1_AUX>,
@@ -556,8 +557,9 @@
 				 <&clk IMX8MM_SYS_PLL2_100M>,
 				 <&clk IMX8MM_SYS_PLL2_250M>;
 	ext_osc = <1>;
-//        power-domains = <&hsio_blk_ctrl IMX8MP_HSIOBLK_PD_PCIE>;
-
+	//power-domains = <&hsio_blk_ctrl IMX8MP_HSIOBLK_PD_PCIE>;
+        wakeup-source;
+        keep-power-in-suspend;
 	status = "okay";
 };
 

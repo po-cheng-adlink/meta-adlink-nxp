@@ -15,6 +15,7 @@ SRC_URI = "git://github.com/AdlinkCCoE/r8168.git;branch=${SRCBRANCH};protocol=ht
 
 SRC_URI:append ="file://Makefile \
 		 file://0001-r8168_n-downgrade-kernel-apis.patch \
+                 file://0001-LEC-IMX8MP-Force-transition-to-D3hot-for-WOL.patch \
 		 file://blacklist-eth.conf "
 
 S = "${WORKDIR}/git"

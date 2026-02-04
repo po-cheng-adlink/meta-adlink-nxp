@@ -1,0 +1,27 @@
+From 2b3533ec588525dc38ecf8c8955f2604e9650ec1 Mon Sep 17 00:00:00 2001
+From: "asuvath.monikandan" <asuvath.monikandan@adlinktech.com>
+Date: Mon, 2 Feb 2026 15:37:02 +0530
+Subject: [PATCH] LEC-IMX8MP:Force transition to D3hot for WOL
+
+---
+ r8168_n.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/r8168_n.c b/r8168_n.c
+index 11e5930..d528cdd 100755
+--- a/r8168_n.c
++++ b/r8168_n.c
+@@ -29964,6 +29964,10 @@ out:
+         pci_save_state(pdev);
+ #endif
+         pci_enable_wake(pdev, pci_choose_state(pdev, state), tp->wol_enabled);
++	pci_enable_wake(pdev, PCI_D3hot, tp->wol_enabled);
++	pdev->current_state = PCI_UNKNOWN;
++	pci_set_power_state(pdev, PCI_D3hot);
++
+ //  pci_set_power_state(pdev, pci_choose_state(pdev, state));
+ 
+         return 0;
+-- 
+2.52.0
+

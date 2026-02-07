@@ -1,0 +1,23 @@
+From 3a74f42d0e04e75433910595b3bd0eb5a9f89305 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Thu, 5 Feb 2026 15:44:17 +0530
+Subject: [PATCH 5/6] UART Port macro
+
+---
+ include/uapi/linux/serial_core.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/linux/serial_core.h b/include/uapi/linux/serial_core.h
+index add349889d0a..d77f4c9b1bd0 100644
+--- a/include/uapi/linux/serial_core.h
++++ b/include/uapi/linux/serial_core.h
+@@ -245,4 +245,6 @@
+ /* Sunplus UART */
+ #define PORT_SUNPLUS	123
+ 
++#define PORT_ADLINK	    124
++
+ #endif /* _UAPILINUX_SERIAL_CORE_H */
+-- 
+2.43.0
+

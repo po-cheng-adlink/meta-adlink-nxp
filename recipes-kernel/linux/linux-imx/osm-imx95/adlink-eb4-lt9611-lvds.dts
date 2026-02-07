@@ -1,0 +1,5 @@
+
+#include "osm-imx95-eb4.dts"
+#include "lt9611-eb4.dts"
+#include "g156hat02.6-eb4.dts"
+#include "ov13855-eb4.dts"

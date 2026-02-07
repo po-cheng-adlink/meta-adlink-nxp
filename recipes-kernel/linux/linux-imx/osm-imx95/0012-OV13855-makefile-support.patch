@@ -1,0 +1,24 @@
+From 764c51c5b4538928d99d5976216acfd4ed9e5eb5 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:21:44 +0530
+Subject: [PATCH 12/19] OV13855 makefile support
+
+---
+ drivers/media/i2c/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 04d29000427f..5c2fc8fa6fb3 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -78,6 +78,7 @@ obj-$(CONFIG_VIDEO_OV01A10) += ov01a10.o
+ obj-$(CONFIG_VIDEO_OV02A10) += ov02a10.o
+ obj-$(CONFIG_VIDEO_OV08D10) += ov08d10.o
+ obj-$(CONFIG_VIDEO_OV08X40) += ov08x40.o
++obj-$(CONFIG_VIDEO_OV13855) += ov13855.o
+ obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
+ obj-$(CONFIG_VIDEO_OV13B10) += ov13b10.o
+ obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+-- 
+2.43.0
+

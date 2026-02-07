@@ -1,0 +1,57 @@
+From 76a256e691f19df6dea11e1ea01f7f2aeca384c8 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:27:33 +0530
+Subject: [PATCH 16/19] Add LED configuration
+
+---
+ drivers/net/phy/realtek.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/net/phy/realtek.c b/drivers/net/phy/realtek.c
+index 79f2cecf8e2a..545bf6e1d15c 100644
+--- a/drivers/net/phy/realtek.c
++++ b/drivers/net/phy/realtek.c
+@@ -83,6 +83,7 @@ struct rtl821x_priv {
+ 	u16 phycr1;
+ 	u16 phycr2;
+ 	struct clk *clk;
++	u32 led_vals[2];
+ };
+ 
+ static int rtl821x_read_page(struct phy_device *phydev)
+@@ -121,6 +122,12 @@ static int rtl821x_probe(struct phy_device *phydev)
+ 		priv->phycr1 |= RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_XTAL_OFF;
+ 
+ 	disable_clk_out = of_property_read_bool(dev->of_node, "realtek,clkout-disable");
++
++	priv->led_vals[0] = 0;
++	priv->led_vals[1] = 0;
++
++	of_property_read_u32_array(dev->of_node, "adlink,led" , priv->led_vals, 2);
++
+ 	if (phy_id == RTL_8211FVD_PHYID) {
+ 		ret = phy_read_paged(phydev, 0xd05, RTL8211FVD_PHYCR2);
+ 		if (ret < 0)
+@@ -436,6 +443,9 @@ static int rtl8211f_config_init(struct phy_device *phydev)
+ 		return ret;
+ 	}
+ 
++	if((priv->led_vals[0]!=0)&&(priv->led_vals[0]!=0))
++		phy_modify_paged_changed(phydev, 0xd04, 0x10, priv->led_vals[0],priv->led_vals[1]);
++
+ 	return genphy_soft_reset(phydev);
+ }
+ 
+@@ -470,6 +480,9 @@ static int rtl821x_resume(struct phy_device *phydev)
+ 
+ 	msleep(20);
+ 
++	rtl8211f_config_init(phydev);
++	rtl8211f_config_intr(phydev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.43.0
+

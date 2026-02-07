@@ -1,0 +1,198 @@
+From b62375c0908d77e36fe09ed0d8b7057ca0a1e9ca Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:30:24 +0530
+Subject: [PATCH 18/19] Timer Event support
+
+---
+ drivers/ptp/ptp_netc.c | 110 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 110 insertions(+)
+
+diff --git a/drivers/ptp/ptp_netc.c b/drivers/ptp/ptp_netc.c
+index 42ba09d6168c..39ed254f9e6a 100644
+--- a/drivers/ptp/ptp_netc.c
++++ b/drivers/ptp/ptp_netc.c
+@@ -14,8 +14,12 @@
+ #define NETC_TMR_CTRL			0x0080
+ #define  TMR_CTRL_CK_SEL		GENMASK(1, 0)
+ #define  TMR_CTRL_TE			BIT(2)
++#define  TMR_CTRL_ETEP1			BIT(8)
++#define  TMR_CTRL_ETEP2			BIT(9)
+ #define  TMR_COMP_MODE			BIT(15)
+ #define  TMR_CTRL_TCLK_PERIOD		GENMASK(25, 16)
++#define  TMR_CTRL_PP2L			BIT(26)
++#define  TMR_CTRL_PP1L			BIT(27)
+ #define  TMR_CTRL_FS			BIT(28)
+ #define  TMR_ALARM1P			BIT(31)
+ 
+@@ -33,6 +37,9 @@
+ 
+ #define NETC_TMR_TEMASK			0x0088
+ #define NETC_TMR_STAT			0x0094
++#define  TMR_STAT_ETS1_VLD		BIT(24)
++#define  TMR_STAT_ETS2_VLD		BIT(25)
++
+ #define NETC_TMR_CNT_L			0x0098
+ #define NETC_TMR_CNT_H			0x009c
+ #define NETC_TMR_ADD			0x00a0
+@@ -84,6 +91,8 @@
+ 
+ #define NETC_TMR_FIPER_PW		0x1f
+ 
++#define NETC_TMR_ETTS_NUM		2
++
+ struct netc_timer {
+ 	void __iomem *base;
+ 	struct device *dev;
+@@ -223,6 +232,7 @@ static irqreturn_t netc_timer_isr(int irq, void *data)
+ 	struct netc_timer *priv = data;
+ 	struct ptp_clock_event event;
+ 	u32 tmr_event, tmr_emask;
++	u32 low, high;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+@@ -246,6 +256,40 @@ static irqreturn_t netc_timer_isr(int irq, void *data)
+ 		netc_timer_alarm_write(priv, NETC_TMR_DEFAULT_ALARM, 0);
+ 	}
+ 
++	if (tmr_event & (TMR_TEVENT_ETS1EN | TMR_TEVENT_ETS1_THREN | TMR_TEVENT_ETS1_OVEN)) {
++		event.type = PTP_CLOCK_EXTTS;
++		event.index = 0;
++		
++		for (u32 i=0; netc_timer_read_reg(priv, NETC_TMR_STAT) & TMR_STAT_ETS1_VLD; i++)
++		{
++			low = netc_timer_read_reg(priv, NETC_TMR_ETTS1_L);
++			high = netc_timer_read_reg(priv, NETC_TMR_ETTS1_H);
++			event.timestamp = ((u64) high) << 32;
++			event.timestamp |= low;
++			ptp_clock_event(priv->clock, &event);
++			if(i > 16)
++				dev_info(priv->dev, "more than 16 etts timestamp\n");
++			printk(KERN_DEBUG"ETTS1 VALID\n");
++		} 
++	}
++	
++	if (tmr_event & (TMR_TEVENT_ETS2EN | TMR_TEVENT_ETS2_THREN | TMR_TEVENT_ETS2_OVEN)) {
++		event.type = PTP_CLOCK_EXTTS;
++		event.index = 1;
++		
++		for (u32 i=0; netc_timer_read_reg(priv, NETC_TMR_STAT) & TMR_STAT_ETS2_VLD; i++)
++		{
++			low = netc_timer_read_reg(priv, NETC_TMR_ETTS2_L);
++			high = netc_timer_read_reg(priv, NETC_TMR_ETTS2_H);
++			event.timestamp = ((u64) high) << 32;
++			event.timestamp |= low;
++			ptp_clock_event(priv->clock, &event);
++			if(i > 16)
++				dev_info(priv->dev, "more than 16 etts timestamp\n");
++			printk(KERN_DEBUG"ETTS2 VALID\n");
++		}
++	}
++
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	return IRQ_HANDLED;
+@@ -475,6 +519,67 @@ static int net_timer_enable_perout(struct netc_timer *priv,
+ 	return 0;
+ }
+ 
++static int netc_timer_enable_extts(struct netc_timer *priv,
++				   struct ptp_clock_request *rq, int on)
++{
++	u32 tmr_emask, channel, tmp;
++	u32 bit_emask, bit_ctrl, bit_stat_vld, reg_etts_l, reg_etts_h;
++	unsigned long flags;
++
++	channel = rq->extts.index;
++	if (channel >= NETC_TMR_ETTS_NUM)
++		return -EINVAL;
++
++	if (channel == 0) {
++		bit_emask = TMR_TEVENT_ETS1EN | TMR_TEVENT_ETS1_THREN | TMR_TEVENT_ETS1_OVEN; 
++		bit_stat_vld  = TMR_STAT_ETS1_VLD;
++		reg_etts_l = NETC_TMR_ETTS1_L;
++		reg_etts_h = NETC_TMR_ETTS1_H;
++		bit_ctrl = TMR_CTRL_ETEP1;
++	} else {
++		bit_emask = TMR_TEVENT_ETS2EN | TMR_TEVENT_ETS2_THREN | TMR_TEVENT_ETS2_OVEN; 
++		bit_stat_vld  = TMR_STAT_ETS2_VLD;
++		reg_etts_l = NETC_TMR_ETTS2_L;
++		reg_etts_h = NETC_TMR_ETTS2_H;
++		bit_ctrl = TMR_CTRL_ETEP2;
++	}
++
++	if(on) {
++		for (u32 i=0; netc_timer_read_reg(priv, NETC_TMR_STAT) & bit_stat_vld; i++)
++		{
++			tmp = netc_timer_read_reg(priv, reg_etts_l);
++			tmp = netc_timer_read_reg(priv, reg_etts_h);
++			if(i > 16)
++				dev_info(priv->dev, "drain more than 16 etts timestamp\n");
++		}
++	}
++
++	spin_lock_irqsave(&priv->lock, flags);
++
++	tmr_emask = netc_timer_read_reg(priv, NETC_TMR_TEMASK);
++
++	if (on)
++		tmr_emask |= bit_emask;
++	else
++		tmr_emask &= ~bit_emask;
++
++	netc_timer_write_reg(priv, NETC_TMR_TEMASK, tmr_emask);
++
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	if(!on) {
++		for (u32 i=0; netc_timer_read_reg(priv, NETC_TMR_STAT) & bit_stat_vld; i++)
++		{
++			tmp = netc_timer_read_reg(priv, reg_etts_l);
++			tmp = netc_timer_read_reg(priv, reg_etts_h);
++			if(i > 16)
++				dev_info(priv->dev, "drain more than 16 etts timestamp\n");
++		}
++	}
++
++	return 0;
++}
++
+ static int netc_timer_enable(struct ptp_clock_info *ptp,
+ 			     struct ptp_clock_request *rq, int on)
+ {
+@@ -489,6 +594,7 @@ static int netc_timer_enable(struct ptp_clock_info *ptp,
+ 		return netc_timer_enable_pps(priv, rq, on);
+ 	case PTP_CLK_REQ_EXTTS:
+ 		/* TODO */
++		return netc_timer_enable_extts(priv, rq, on);
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -542,6 +648,7 @@ static int netc_timer_init(struct netc_timer *priv)
+ 	if (of_property_read_u32(node, "fsl,clk-select", &priv->clk_select))
+ 		priv->clk_select = NETC_TMR_SYSTEM_CLK;
+ 
++	printk("jimmy clk_select:0x%x\n",priv->clk_select);
+ 	/* Check whether the clock source is valid */
+ 	if (priv->clk_select != NETC_TMR_SYSTEM_CLK &&
+ 	    priv->clk_select != NETC_TMR_CCM_TIMER1 &&
+@@ -565,6 +672,7 @@ static int netc_timer_init(struct netc_timer *priv)
+ 	 * domain are not accesdible.
+ 	 */
+ 	tmr_ctrl = (priv->clk_select & TMR_CTRL_CK_SEL) | TMR_CTRL_TE;
++	printk("jimmy write NETC_TMR_CTRL :tmr_ctrl:0x%x\n",tmr_ctrl);
+ 	netc_timer_write_reg(priv, NETC_TMR_CTRL, tmr_ctrl);
+ 
+ 	/* Output FIPER pulse clock (TMR_GCLK) is generated by dividing the
+@@ -579,6 +687,8 @@ static int netc_timer_init(struct netc_timer *priv)
+ 		fiper_ctrl |= FIPER_CTRL_DIS(i);
+ 	netc_timer_write_reg(priv, NETC_TMR_FIPER_CTRL, fiper_ctrl);
+ 
++	netc_timer_write_reg(priv, NETC_TMR_ECTRL, 0xf);
++
+ 	ktime_get_real_ts64(&now);
+ 	ns = timespec64_to_ns(&now);
+ 	netc_timer_cnt_write(priv, ns);
+-- 
+2.43.0
+

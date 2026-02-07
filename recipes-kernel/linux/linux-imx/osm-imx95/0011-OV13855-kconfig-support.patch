@@ -1,0 +1,33 @@
+From c7edb27461b50a5ff164f11843923d3dfa285f47 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:21:17 +0530
+Subject: [PATCH 11/19] OV13855 kconfig support
+
+---
+ drivers/media/i2c/Kconfig | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 1e8141876073..0f4c210980d6 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -300,6 +300,16 @@ config VIDEO_OV08X40
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov08x40.
+ 
++config VIDEO_OV13855
++       tristate "OmniVision OV13855 sensor support"
++       depends on VIDEO_V4L2_I2C && VIDEO_V4L2_SUBDEV_API
++       depends on MEDIA_CAMERA_SUPPORT
++       depends on GPIOLIB
++       select V4L2_FWNODE
++       help
++         This is a Video4Linux2 sensor driver for the OmniVision
++         OV13855 camera.
++
+ config VIDEO_OV13858
+ 	tristate "OmniVision OV13858 sensor support"
+ 	help
+-- 
+2.43.0
+

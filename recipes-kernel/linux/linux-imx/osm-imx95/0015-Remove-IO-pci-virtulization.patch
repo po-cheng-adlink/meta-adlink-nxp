@@ -1,0 +1,26 @@
+From 9559ae5eb7ee0bf0439e81cf9a1036ab527e03ea Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:25:35 +0530
+Subject: [PATCH 15/19] Remove IO pci virtulization
+
+---
+ drivers/net/ethernet/freescale/enetc/enetc4_pf.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/freescale/enetc/enetc4_pf.c b/drivers/net/ethernet/freescale/enetc/enetc4_pf.c
+index c2d54ee6ff7e..c5b334b4aea8 100644
+--- a/drivers/net/ethernet/freescale/enetc/enetc4_pf.c
++++ b/drivers/net/ethernet/freescale/enetc/enetc4_pf.c
+@@ -1529,9 +1529,6 @@ static struct pci_driver enetc4_pf_driver = {
+ 	.probe = enetc4_pf_probe,
+ 	.remove = enetc4_pf_remove,
+ 	.driver.pm = &enetc4_pf_pm_ops,
+-#ifdef CONFIG_PCI_IOV
+-	.sriov_configure = enetc_sriov_configure,
+-#endif
+ };
+ module_pci_driver(enetc4_pf_driver);
+ 
+-- 
+2.43.0
+

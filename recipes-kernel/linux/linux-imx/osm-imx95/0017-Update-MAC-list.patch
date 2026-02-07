@@ -1,0 +1,25 @@
+From 7537a258280fcabb788b385b3659f7c32cc578bb Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:28:38 +0530
+Subject: [PATCH 17/19] Update MAC list
+
+---
+ drivers/nvmem/imx-ocotp-fsb-s400.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/nvmem/imx-ocotp-fsb-s400.c b/drivers/nvmem/imx-ocotp-fsb-s400.c
+index 87e47df9b187..38c0fd9e212b 100644
+--- a/drivers/nvmem/imx-ocotp-fsb-s400.c
++++ b/drivers/nvmem/imx-ocotp-fsb-s400.c
+@@ -405,7 +405,7 @@ static int imx_fsb_s400_fuse_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static const u8 imx95_pf_mac_offset_list[] = { 0, 3, 6 };
++static const u8 imx95_pf_mac_offset_list[] = { 0, 1, 2 };
+ 
+ static const struct imx_fsb_s400_hw imx8ulp_fsb_s400_hw = {
+ 	.soc = IMX8ULP,
+-- 
+2.43.0
+

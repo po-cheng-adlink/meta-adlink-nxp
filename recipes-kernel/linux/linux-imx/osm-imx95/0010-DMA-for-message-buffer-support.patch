@@ -1,0 +1,55 @@
+From b9abc0402a07662610e2de0743ff202aef097337 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Fri, 6 Feb 2026 12:12:41 +0530
+Subject: [PATCH 10/19] DMA for message buffer support
+
+---
+ drivers/i2c/busses/i2c-imx-lpi2c.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-imx-lpi2c.c b/drivers/i2c/busses/i2c-imx-lpi2c.c
+index 8337930be385..319669fb24c3 100644
+--- a/drivers/i2c/busses/i2c-imx-lpi2c.c
++++ b/drivers/i2c/busses/i2c-imx-lpi2c.c
+@@ -746,13 +746,13 @@ static int lpi2c_imx_xfer(struct i2c_adapter *adapter,
+ 
+ 				/* Disable I2C DMA function */
+ 				writel(0, lpi2c_imx->base + LPI2C_MDER);
+-				i2c_put_dma_safe_msg_buf(lpi2c_imx->dma_buf,
+-							 lpi2c_imx->msg,
+-							 lpi2c_imx->xferred);
+ 
+ 				switch (result) {
+ 				/* transfer success */
+ 				case 0:
++                    i2c_put_dma_safe_msg_buf(lpi2c_imx->dma_buf,
++                        lpi2c_imx->msg,
++                        lpi2c_imx->xferred);
+ 					if (!(msgs[i].flags & I2C_M_RD)) {
+ 						result = lpi2c_imx_txfifo_empty(lpi2c_imx);
+ 						if (result)
+@@ -762,6 +762,10 @@ static int lpi2c_imx_xfer(struct i2c_adapter *adapter,
+ 				/* transfer failed, use pio */
+ 				case I2C_USE_PIO:
+ 					lpi2c_cleanup_dma(lpi2c_imx);
++                    i2c_put_dma_safe_msg_buf(lpi2c_imx->dma_buf,
++                        lpi2c_imx->msg,
++                        lpi2c_imx->xferred);
++                    dev_err(&lpi2c_imx->adapter.dev, "Transfer failed. Use PIO.");
+ 					break;
+ 				/*
+ 				 * transfer failed, cannot use pio.
+@@ -769,6 +773,10 @@ static int lpi2c_imx_xfer(struct i2c_adapter *adapter,
+ 				 */
+ 				default:
+ 					lpi2c_cleanup_dma(lpi2c_imx);
++                    i2c_put_dma_safe_msg_buf(lpi2c_imx->dma_buf,
++                        lpi2c_imx->msg,
++                        lpi2c_imx->xferred);
++                    dev_err(&lpi2c_imx->adapter.dev, "Transfer failed. Send stop and return error");
+ 					writel(GEN_STOP << 8, lpi2c_imx->base + LPI2C_MTDR);
+ 					goto check_ndf;
+ 				}
+-- 
+2.43.0
+

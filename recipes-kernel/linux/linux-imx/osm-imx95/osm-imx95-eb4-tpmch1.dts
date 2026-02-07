@@ -1,0 +1,284 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2023 NXP
+ */
+
+#include "osm-imx95.dts"
+
+/ {
+	reg_tpm_rst: regulator-tmp {
+		compatible = "regulator-fixed";
+		regulator-name = "TPM_RST";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+        //GPIO_B_1 , TPM_RSTB_N
+		gpio =  <&gpio5 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+		startup-delay-us = <5000>;
+	};
+
+	reg_can1_stby: regulator-can1-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "can1-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&i2c3_gpio_expander_3e 4 GPIO_ACTIVE_HIGH>;
+		enable-active-low;
+		regulator-always-on;
+	};    
+	reg_can3_stby: regulator-can3-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "can3-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&i2c3_gpio_expander_3e 5 GPIO_ACTIVE_HIGH>;
+		enable-active-low;
+		regulator-always-on;
+	};     
+
+	reg_usdhc3_en: regulator-usdhc3-en {
+		compatible = "regulator-fixed";
+		regulator-name = "usdhc3-en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&i2c3_gpio_expander_3e 8 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+        regulator-always-on;
+	};
+	//U1701
+	sound-tlv320aic3x {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "tlv320aic3x";
+
+		simple-audio-card,widgets =
+			"Microphone", "Microphone Jack",
+			"Headphone", "Headphone Jack";
+		simple-audio-card,routing =
+			"MIC3L", "Microphone Jack",
+			"MIC3R", "Microphone Jack",
+			"Headphone Jack", "HPLOUT",
+			"Headphone Jack", "HPROUT";
+
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+		};
+
+		sound_master: simple-audio-card,codec {
+			sound-dai = <&tlv320aic3x07>;
+		};
+	};
+
+};
+
+
+//i2c_a
+&lpi2c3 {
+	/*U2901 SX1509BIULTRT_SEMTECH */
+	i2c3_gpio_expander_3e: i2c3_gpio_expander_3e@3e {
+		/* GPIO Expander  Mapping :
+		 * - 0: HP_LOP_SEL			    =>			U1702 , 0:LOP 1:HP
+		 * - 1: eDPA_HDMI_SEL			=>			        0:eDP , 1:HDMI			
+		 * - 2: LVDS_DSI_SEL			=>			        0:DSI , 1:LVDS
+		 * - 3: LT9611_RST_N_3V3	    =>			U2201
+		 * - 4: CAN_A_STBY_3V3			=>			U1501   0:Wake , 1:Standby
+		 * - 5: CAN_B_STBY_3V3			=> 			U1502   0:Wake , 1:Standby
+		 * - 6: CODEC_RST#_3V3			=>			U1701   	
+		 * - 7: E_GPIO0_3V3			    =>			CN2901 7
+		 * - 8: RF_PD#			        => 			U1801
+		 * - 9: E_GPIO1_3V3				=>          CN2901 11
+		 * - 10: E_GPIO2_3V3			=>          CN2901 13
+		 * - 11: E_GPIO3_3V3			=>          CN2901 15
+		 * - 12: E_GPIO4_3V3		    =>          CN2901 12
+		 * - 13: E_GPIO5_3V3			=>          CN2901 16
+		 * - 14: E_GPIO6_3V3		    =>          CN2901 18
+		 * - 15: E_GPIO7_3V3    		=>          CN2904 2
+		 */
+		#gpio-cells = <2>;
+		#interrupt-cells = <2>;
+		compatible = "semtech,sx1509q";
+		reg = <0x3e>;
+
+		semtech,probe-reset;
+		gpio-controller;
+		interrupt-controller;
+        //GPIO_A_1 ,E_GPIO_INT#
+		interrupt-parent = <&gpio2>;
+		interrupts = <19 IRQ_TYPE_LEVEL_LOW>;
+        //GPIO_A_0 ,E_GPIO_NRST# , not use in driver
+
+		status = "okay";
+	};
+
+    //U1701
+    tlv320aic3x07: tlv320aic310x@18 {
+		clock-names = "mclk";
+		clocks = <&scmi_clk IMX95_CLK_SAI3>;
+		compatible = "ti,tlv320aic3x";
+		#sound-dai-cells = <0>;
+		reg = <0x18>;
+		ai3x-micbias-vg = <2>; /* MICBIAS_2_5V */
+        //CODEC_RST#_3V3
+        //reset-gpios = <&i2c3_gpio_expander_3e 6 GPIO_ACTIVE_LOW>;
+		status = "okay";
+    };
+};
+
+//i2c_b
+&lpi2c4 {
+
+	//U1601 RTC PCF8563ATT/AJ_NXP
+	pcf85063: rtc@51 {
+		compatible = "nxp,pcf85063";
+		pinctrl-names = "default";
+		//pinctrl-0 = <&pinctrl_i2c3_rtc>;
+		reg = <0x51>;
+		#clock-cells = <0>;
+        //GPIO_A_3 , RTC_INT_N
+		interrupt-parent = <&gpio5>;
+		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
+		wakeup-source;
+	};
+};
+
+&lpspi7 {
+/*
+    //U1603 with SPI_C Channel 0
+    st33htpm0: st33htpm@0 {
+        compatible = "st,st33htpm-spi";
+        spi-max-frequency = <10000000>;
+        reg = <0>;
+        //GPIO_B_0 , TPM_IRQ_N
+		interrupt-parent = <&gpio5>;
+		interrupts = <6 IRQ_TYPE_LEVEL_LOW>;  
+        
+   		tpm-supply = <&reg_tpm_rst>;
+		status = "okay";
+    };
+*/	
+	//U1603 with SPI_C Channel 1
+    st33htpm1: st33htpm@1{
+        compatible = "st,st33htpm-spi";
+        spi-max-frequency = <10000000>;
+        reg = <1>;
+        //GPIO_B_0 , TPM_IRQ_N
+		interrupt-parent = <&gpio5>;
+		interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
+
+		tpm-supply = <&reg_tpm_rst>;
+		status = "okay";
+    };
+};
+
+
+&reg_usb_vbus {
+    //GPIO_A_2 , USB_HUB_RST#
+    gpio = <&gpio2 13 GPIO_ACTIVE_HIGH>;
+};
+//ETH_A
+&enetc_port0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enetc0>;
+	phy-handle = <&ethphy0>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+};
+
+//ETH_B
+&enetc_port1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enetc1>;
+	phy-handle = <&ethphy1>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+};
+
+&netc_emdio {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_emdio>;
+	status = "okay";
+
+//addr 5 for EB4
+	ethphy0: ethernet-phy@5 {
+		reg = <5>;
+		reset-assert-us = <10000>;
+		reset-deassert-us = <80000>;
+		realtek,clkout-disable;
+		adlink,led = <0xc2bf 0x6d40>;
+		//compatible = "ethernet-phy-id001c.c916";//RTL8211
+
+		//GPIO_A_4 , PHY_RSTB_A
+		reset-gpios = <&gpio5 4 GPIO_ACTIVE_LOW>;
+		//GPIO_A_5 , PHY_INTB_A
+		interrupt-parent = <&gpio5>;
+		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+	};
+
+//addr 1 for EB4
+	ethphy1: ethernet-phy@1 {
+		reg = <1>;
+		reset-assert-us = <10000>;
+		reset-deassert-us = <80000>;
+		realtek,clkout-disable;
+		adlink,led = <0xc2bf 0x6d40>;
+		//compatible = "ethernet-phy-id001c.c916";//RTL8211
+
+		//GPIO_B_2 , PHY_RSTB_B
+		reset-gpios = <&i2c2_adl1000 0 GPIO_ACTIVE_LOW>;
+		//GPIO_B_3 , PHY_INTB_B
+		interrupt-parent = <&i2c2_adl1000>;
+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+	};
+};
+
+&flexcan1 {
+	xceiver-supply = <&reg_can1_stby>;
+};
+&flexcan3 {
+	xceiver-supply = <&reg_can3_stby>;
+};
+
+&lpuart7 {
+
+	//EB4
+	bluetooth {
+		compatible = "nxp,88w8997-bt";
+	};
+};
+
+&usdhc3 {
+
+	vmmc-supply = <&reg_usdhc3_en>;
+
+	mwifiex: wifi@1 {
+		compatible = "marvell,sd8997";
+		reg = <1>;
+
+		marvell,caldata_00_txpwrlimit_2g_cfg_set = /bits/ 8 <
+			 0x01 0x00 0x06 0x00 0x08 0x02 0x89 0x01>;
+		marvell,wakeup-pin = <14>;
+	};
+};
+
+
+/delete-node/ &flash0;
+
+&flexspi1 {
+
+	flash1: W25Q128JV@1 {
+		reg = <1>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <39900000>;
+		//spi-max-frequency = <3990000>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+	};
+};
+
+

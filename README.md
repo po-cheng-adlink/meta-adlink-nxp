@@ -1,13 +1,12 @@
-# Scarthgap
+## Scarthgap
 
 - Kernel version: 6.6.x
-- Released year: 2024
 - Kernel support by Adlink(continuing).
 - Manifest of the Yocto BSP is [here](https://github.com/ADLINK/adlink-manifest).
 
 
 
-## 1. Supported Recipes by Adlink
+### 1. Supported Recipes by Adlink
 
 | Resources                      | Description |
 | ------------------------------ | ----------- |
@@ -25,19 +24,20 @@
 
 
 
-## 2. Supported Modules
+### 2. Supported Modules
 
 - LEC-IMX8MP
 - LEC-IMX8MM
-- SP2-IMX8MP
 - LEC-IMX95
 - OSM-IMX93
 - OSM-IMX95
+- SP2-IMX8MP
 
-## 3. Supported Features & Interfaces
+### 3. Supported Features & Interfaces
 
-### 3.1 LEC-IMX8MP (based on I-Pi SMARC plus carrier + LEC-IMX8MP Dev Kit)
-
+<details>
+<summary><strong>LEC-IMX8MP</strong> (Based on I-Pi SMARC Plus Carrier + LEC-IMX8MP Dev Kit)</summary>
+  
 | Interfaces                                 | Support |
 | ------------------------------------------ | ------- |
 | RAM [LPDDR4(2G)]                           | Y       |
@@ -66,7 +66,10 @@
 | GPIO                                       | Y       |
 | SDIO                                       | Y       |
 
-### 3.2 LEC-IMX8MM (based on I-Pi SMARC carrier + LEC-IMX8MM Dev Kit)
+</details>
+
+<details>
+<summary><strong>LEC-IMX8MM</strong> (Based on I-Pi SMARC Carrier + LEC-IMX8MM Dev Kit)</summary>
 
 | Interfaces                                 | Support |
 | ------------------------------------------ | ------- |
@@ -94,9 +97,31 @@
 | GPIO                                       | Y       |
 | SDIO                                       | Y       |
 
+</details>
 
+<details>
+<summary><strong>LEC-IMX95</strong> (Based on I-Pi SMARC Plus Carrier + LEC-IMX95 Dev Kit)</summary>
 
-### 3.3 SP2-IMX8MP (SBC + LVDS/MIPI-DSI display panels)
+Coming soon...
+
+</details>
+
+<details>
+<summary><strong>OSM-IMX93</strong> (Based on SB3 Carrier + OSM-IMX93 Dev Kit)</summary>
+
+Coming soon...
+
+</details>
+
+<details>
+<summary><strong>OSM-IMX95</strong> (Based on EB4 Carrier + OSM-IMX93 Dev Kit)</summary>
+  
+Coming soon...
+
+</details>
+
+<details>
+<summary><strong>SP2-IMX8MP</strong>(SBC + LVDS/MIPI-DSI Display Panel)</summary>
 
 | Interfaces                                 | Support |
 | ------------------------------------------ | ------- |
@@ -122,9 +147,9 @@
 | GPIO                                       | Y       |
 | SDIO                                       | Y       |
 
+</details>
 
-
-## 4. Documentation
+### 4. Documentation
 
 Refer to the [wiki](https://github.com/ADLINK/meta-adlink-nxp/wiki) page for instructions on building the Yocto as well as flashing the image.
 

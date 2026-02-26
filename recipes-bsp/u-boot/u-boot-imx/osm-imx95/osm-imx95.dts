@@ -396,5 +396,5 @@
 	};
 };
 
-#include "imx95-15x15-evk-u-boot.dtsi"
+//#include "osm-imx95-u-boot.dtsi"
 

@@ -1,0 +1,26 @@
+From 0f134d12654eeab9f3304f5b39be26012180edef Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Thu, 26 Feb 2026 10:29:12 +0530
+Subject: [PATCH 2/2] Added USB Boot Index for A0 chip
+
+---
+ arch/arm/mach-imx/imx9/scmi/soc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/mach-imx/imx9/scmi/soc.c b/arch/arm/mach-imx/imx9/scmi/soc.c
+index bfa7d3c6b96..e599dadb5bb 100644
+--- a/arch/arm/mach-imx/imx9/scmi/soc.c
++++ b/arch/arm/mach-imx/imx9/scmi/soc.c
+@@ -164,6 +164,9 @@ int board_usb_gadget_port_auto(void)
+ 	if (bt_dev == USB2_BOOT)
+ 		usb_boot_index = 1;
+ 
++	if(bt_dev == 16)	//debug adding for A0 chip
++		usb_boot_index = 1;
++
+ 	printf("auto usb %d\n", usb_boot_index);
+ 
+ 	return usb_boot_index;
+-- 
+2.43.0
+

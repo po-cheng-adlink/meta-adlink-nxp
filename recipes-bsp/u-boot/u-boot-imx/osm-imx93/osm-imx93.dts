@@ -274,7 +274,7 @@ dsi_host: dsi-host {
 };
 
 &usbotg1 {
-	dr_mode = "otg";
+	dr_mode = "host";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
@@ -284,15 +284,10 @@ dsi_host: dsi-host {
 	samsung,picophy-dc-vol-level-adjust = <7>;
 	status = "okay";
 
-	port {
-		usb1_drd_sw: endpoint {
-			remote-endpoint = <&typec1_dr_sw>;
-		};
-	};
 };
 
 &usbotg2 {
-	dr_mode = "otg";
+	dr_mode = "host";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
@@ -302,11 +297,6 @@ dsi_host: dsi-host {
 	samsung,picophy-dc-vol-level-adjust = <7>;
 	status = "okay";
 
-	port {
-		usb2_drd_sw: endpoint {
-			remote-endpoint = <&typec2_dr_sw>;
-		};
-	};
 };
 
 &usdhc1 {

@@ -677,7 +677,7 @@
 		gpio-controller;
 		#gpio-cells = <2>;
 		gpio-line-names =
-			"USER-LED-0", "USER-LED-1", "USER-BTN-0", "USER-BTN-1", "HDMI-INTN", "ETH-A-INTN", "ETH-B-INTN", "AUDIO-RSTN";
+			"GPIO-B-0", "GPIO-B-1", "GPIO-B-2", "GPIO-B-3", "GPIO-B-4", "GPIO-B-5", "GPIO-B-6", "GPIO-B-7";
 		interrupt-controller;
 		#interrupt-cells = <2>;
 		interrupt-parent = <&gpio4>;

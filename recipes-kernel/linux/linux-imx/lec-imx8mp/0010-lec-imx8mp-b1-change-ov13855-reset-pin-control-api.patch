@@ -1,0 +1,42 @@
+From e8ca565c39ac2a1fe2f8f6562f463d18b5422533 Mon Sep 17 00:00:00 2001
+From: Craig Chen <craig.chen@adlinktech.com>
+Date: Wed, 17 Jun 2026 12:42:24 +0000
+Subject: [PATCH 1/2] lec-imx8mp-b1: change ov13855 reset pin control api
+
+Signed-off-by: M. Shangavelan <shangavelan.m@adlinktech.com>
+---
+ drivers/media/i2c/ov13855.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/ov13855.c b/drivers/media/i2c/ov13855.c
+index 9e6bd66a4f6e..da33c227f85f 100644
+--- a/drivers/media/i2c/ov13855.c
++++ b/drivers/media/i2c/ov13855.c
+@@ -779,13 +779,13 @@ static void ov13855_power_on(int rst_gpio, int pwn_gpio)
+ 	gpio_set_value(pwn_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 
+-	gpio_set_value(rst_gpio, 0);
++	gpio_set_value_cansleep(rst_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 
+ 	gpio_set_value(pwn_gpio, 1);
+ 	usleep_range(3000, 5000);
+ 
+-	gpio_set_value(rst_gpio, 1);
++	gpio_set_value_cansleep(rst_gpio, 1);
+ 	usleep_range(3000, 5000);
+ 
+ 	/* 8192 cycles prior to first SCCB transaction */
+@@ -797,7 +797,7 @@ static void ov13855_power_on(int rst_gpio, int pwn_gpio)
+ static void ov13855_power_off(int rst_gpio, int pwn_gpio)
+ {
+ 	msleep(10);
+-	gpio_set_value(rst_gpio, 0);
++	gpio_set_value_cansleep(rst_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 	gpio_set_value(pwn_gpio, 0);
+ 	usleep_range(3000, 5000);
+-- 
+2.34.1
+

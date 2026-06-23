@@ -1,0 +1,26 @@
+From 972a665735da8f2e3c0ce547ba17f5e015fd3f41 Mon Sep 17 00:00:00 2001
+From: Craig Chen <craig.chen@adlinktech.com>
+Date: Thu, 18 Jun 2026 09:45:22 +0000
+Subject: [PATCH] lec-imx8mp-b1: optimize RX-8310CE driver & SEMA watchdog
+ driver
+
+Signed-off-by: M. Shangavelan <shangavelan.m@adlinktech.com>
+---
+ drivers/rtc/rtc-rx8130.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/rtc/rtc-rx8130.c b/drivers/rtc/rtc-rx8130.c
+index fc21ca799840..a07f571e250d 100644
+--- a/drivers/rtc/rtc-rx8130.c
++++ b/drivers/rtc/rtc-rx8130.c
+@@ -369,6 +369,7 @@ static int rx8130_init_client(struct i2c_client *client, int *need_reset)
+ 	//set extension register, TE to 0, FSEL1-0 and TSEL2-0 for desired frequency
+ 	ctrl[0] &= ~RX8130_BIT_EXT_TE;			//set TE to 0
+ 	ctrl[0] &= ~RX8130_BIT_EXT_FSEL;		//set to 0 (off) for this case
++	ctrl[0] &= ~RX8130_BIT_EXT_TSEL;		//clear TSEL
+ 	ctrl[0] |= 0x02;						//set TSEL for 1Hz 
+ 	err = rx8130_write_reg(client, RX8130_REG_EXT, ctrl[0]);
+ 	if (err)
+-- 
+2.34.1
+

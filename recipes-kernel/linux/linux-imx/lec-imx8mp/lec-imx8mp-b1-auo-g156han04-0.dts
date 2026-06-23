@@ -1,0 +1,51 @@
+/*
+ * Copyright 2020 NXP
+ */
+
+#include "lec-imx8mp-b1.dts"
+
+/ {
+	lvds0_panel {
+		status = "okay";
+		compatible = "auo,g156han04_0";
+		backlight = <&lvds_backlight>;
+
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+
+		port {
+			panel_lvds_in: endpoint {
+				remote-endpoint = <&lvds_out>;
+			};
+		};
+	};
+
+	lvds_backlight {
+		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&ldb {
+	status = "okay";
+	fsl,dual-channel;
+
+	lvds-channel@0 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		/delete-node/ port@1;
+
+		port@1 {
+			reg = <1>;
+
+			lvds_out: endpoint {
+				remote-endpoint = <&panel_lvds_in>;
+			};
+		};
+	};
+
+};
+
+&ldb_phy {
+	status = "okay";
+};

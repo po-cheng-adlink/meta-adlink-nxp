@@ -1,0 +1,47 @@
+/*
+ * Copyright 2020 NXP
+ */
+
+#include "lec-imx8mp-b1.dts"
+
+/ {
+	lvds_backlight {
+		enable-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+	panel@0 {
+		compatible = "auo,b101uan01v7";
+		reg = <0>;
+		pinctrl-0 = <&pinctrl_disp_pwr_en>;
+		pinctrl-1 = <&pinctrl_disp_vdd_en>;
+		enable-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+
+		dsi-lanes = <4>;
+		video-mode = <0>;
+		panel-width-mm = <293>;
+		panel-height-mm = <165>;
+		backlight = <&lvds_backlight>;
+
+		display-timings {
+			timing {
+				clock-frequency = <148000000>;
+				hactive = <1920>;
+				vactive = <1200>;
+				hfront-porch = <77>;
+				hsync-len = <56>;
+				hback-porch = <117>;
+				vfront-porch = <11>;
+				vsync-len = <19>;
+				vback-porch = <19>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+	};
+};

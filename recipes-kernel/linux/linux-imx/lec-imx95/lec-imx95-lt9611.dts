@@ -1,0 +1,2 @@
+#include "lec-imx95.dts"
+#include "lt9611-basic.dtsi"

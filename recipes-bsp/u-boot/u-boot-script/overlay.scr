@@ -1,0 +1,123 @@
+#
+# set device tree overlays according to eeprom settings
+#
+setenv set_overlays 'echo "EEPROM env variable: E_ram:${E_ram} E_disp:${E_disp} E_eth:${E_eth} E_wl:${E_wl} E_snd:${E_snd} E_cma:${E_cma}...";
+if test -n ${E_ram}; then
+  if test ${E_ram} = 2; then
+    setenv overlays ${overlays} gpu128mb-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_disp}; then
+  if test ${E_disp} = 7; then
+    setenv overlays ${overlays} 7inch-overlay.dtbo;
+  elif test ${E_disp} = 2070001; then
+    setenv overlays ${overlays} 7inch-overlay.dtbo;
+  elif test ${E_disp} = 7d; then
+    setenv overlays ${overlays} 7dsi-overlay.dtbo;
+  elif test ${E_disp} = 7r; then
+    setenv overlays ${overlays} 7rlcd-overlay.dtbo;
+  elif test ${E_disp} = 10; then
+    setenv overlays ${overlays} 10inch-overlay.dtbo;
+  elif test ${E_disp} = 2100002; then
+    setenv overlays ${overlays} 10inch-overlay.dtbo;
+  elif test ${E_disp} = 100301; then
+    setenv overlays ${overlays} 10auo-overlay.dtbo;
+  elif test ${E_disp} = 23; then
+    setenv overlays ${overlays} 23inch-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_eth}; then
+  if test ${E_eth} = 0; then
+    setenv overlays ${overlays} eth1-overlay.dtbo;
+  fi
+  if test ${E_eth} = 1; then
+    setenv overlays ${overlays} eth0-overlay.dtbo;
+  fi
+fi;
+if test -n ${E_wl}; then
+  if test ${E_wl} = sur; then
+    setenv overlays ${overlays} awcm276masur-overlay.dtbo;
+  elif test ${E_wl} = pur; then
+    setenv overlays ${overlays} awcm276mapur-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_snd}; then
+  if test ${E_snd} = s5k; then
+    setenv overlays ${overlays} snd-sgtl5000-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_cma}; then
+  if test ${E_cma} = 950; then
+    setenv overlays ${overlays} cma950mb-overlay.dtbo;
+  elif test ${E_cma} = 750; then
+    setenv overlays ${overlays} cma750mb-overlay.dtbo;
+  elif test ${E_cma} = 400; then
+    setenv overlays ${overlays} cma400mb-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_csi}; then
+  if test ${E_csi} = 678; then
+    setenv overlays ${overlays} csi678-overlay.dtbo;
+  fi;
+fi;
+if test -n ${E_ts}; then
+  if test ${E_ts} = ili; then
+    setenv overlays ${overlays} ts-ili2132-overlay.dtbo;
+  fi;
+fi;'
+#
+# set load_overlays commands to load dtbo
+#
+setenv load_overlays 'echo "DT overlays: ${overlays}";
+fdt address ${fdt_addr};
+fdt resize 8192;
+setexpr dtboaddr ${fdt_addr} + 0xF0000;
+for ov in ${overlays}; do
+  echo Overlaying ${ov}...;
+  fatload mmc ${mmcdev}:${mmcpart} ${dtboaddr} ${ov} && fdt apply ${dtboaddr};
+done;'
+
+#
+# set boot arguments from emmc boot
+#
+setenv extraargs '#EXTRA_BOOT_ARGS#'
+setenv emmcargs 'setenv bootargs ${jh_clk} ${mcore_clk} console=${console} ${extraargs} root=${mmcroot};'
+
+#
+# modified mmcboot
+#
+setenv emmcboot 'echo Booting from mmc ...;
+run emmcargs;
+echo Load fdtfile: ${fdtfile}...;
+if run loadfdt; then
+  if run load_overlays; then
+    booti ${loadaddr} - ${fdt_addr_r};
+  else
+    echo WARN: Cannot load the DTBO;
+  fi;
+else
+  echo WARN: Cannot load the DT;
+fi;'
+
+#
+# starting point
+#
+# fn key NOT pressed during u-boot => normal boot
+if test ${fn_key} = no; then
+  # 1. parse eeprom settings. e.g. sets up E_disp, E_prj, E_macs1, E_macs2, etc.
+  jsinfo;
+  # 2. set overlays based on eeprom settings
+  run set_overlays;
+  # 3. load kernel and boot (based on mmcboot or initdboot)
+  if run loadimage; then
+    run emmcboot;
+  else
+    run netboot;
+  fi;
+# fn key pressed during u-boot => ums
+else
+  load mmc ${mmcdev}:${mmcpart} ${splashimage} ums.bmp
+  bmp display ${splashimage}
+  ums 0 mmc 2
+fi;
+

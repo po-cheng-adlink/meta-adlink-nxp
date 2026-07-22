@@ -1,0 +1,21 @@
+From 480ecfb366cd244f41a31994f55bfa6035e9d7d0 Mon Sep 17 00:00:00 2001
+From: Dinesh kumar <dinesh.v@adlinktech.com>
+Date: Thu, 16 Jul 2026 18:52:10 +0530
+Subject: [PATCH] Enabled-lec-imx95-device-tree
+Upstream-Status: Inappropriate [board-specific]
+---
+ arch/arm64/boot/dts/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
+index b0844404eda1..af1b6166a8d3 100644
+--- a/arch/arm64/boot/dts/Makefile
++++ b/arch/arm64/boot/dts/Makefile
+@@ -38,3 +38,4 @@ subdir-y += tesla
+ subdir-y += ti
+ subdir-y += toshiba
+ subdir-y += xilinx
++subdir-y += adlink
+-- 
+2.43.0
+

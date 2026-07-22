@@ -1,0 +1,185 @@
+From b9a2d76fc47ec0fab8eec8331938315736d49926 Mon Sep 17 00:00:00 2001
+From: M Shangavelan <shangavelan.m@adlinktech.com>
+Date: Wed, 22 Jul 2026 15:03:44 +0530
+Subject: [PATCH] LEC-IMX95: G156HAT026 and audio codec support
+
+Signed-off-by: M Shangavelan <shangavelan.m@adlinktech.com>
+Upstream-Status: Inappropriate [board-specific]
+---
+ drivers/gpu/drm/panel/panel-simple.c   | 60 ++++++++++++++++++++++++++
+ drivers/net/phy/realtek/realtek_main.c |  6 +++
+ sound/soc/codecs/tlv320aic3x.c         | 24 ++++++++++-
+ 3 files changed, 88 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index d1651e875fec..4f339c822ef0 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -2879,6 +2879,31 @@ static const struct drm_display_mode innolux_zj070na_01p_mode = {
+ 	.vtotal = 600 + 16 + 4 + 16,
+ };
+ 
++static const struct drm_display_mode auo_g156hat026_mode = {
++	.clock = 141000,
++	.hdisplay = 1920,
++	.hsync_start = 1920 + 80,
++	.hsync_end = 1920 + 80 + 80,
++	.htotal = 1920 + 80 + 80 + 80,
++
++	.vdisplay = 1080,
++	.vsync_start = 1080 + 8,
++	.vsync_end = 1080 + 8 + 20,
++	.vtotal = 1080 + 8 + 20 + 8,
++};
++
++static const struct panel_desc auo_g156hat026 = {
++	.modes = &auo_g156hat026_mode,
++	.num_modes = 1,
++	.bpc = 8,
++	.size = {
++		.width = 344,
++		.height = 194,
++	},
++	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
++	.connector_type = DRM_MODE_CONNECTOR_LVDS,
++};
++
+ static const struct panel_desc innolux_zj070na_01p = {
+ 	.modes = &innolux_zj070na_01p_mode,
+ 	.num_modes = 1,
+@@ -5054,6 +5079,9 @@ static const struct of_device_id platform_of_match[] = {
+ 	}, {
+ 		.compatible = "auo,g156xtn01",
+ 		.data = &auo_g156xtn01,
++	}, {
++		.compatible = "auo,g156hat026",
++		.data = &auo_g156hat026,
+ 	}, {
+ 		.compatible = "auo,g185han01",
+ 		.data = &auo_g185han01,
+@@ -5576,6 +5604,35 @@ static const struct panel_desc_dsi auo_b080uan01 = {
+ 	.lanes = 4,
+ };
+ 
++
++static const struct drm_display_mode auo_g080uan02_mode = {
++	.clock = 154500,
++	.hdisplay = 1200,
++	.hsync_start = 1200 + 1,
++	.hsync_end = 1200 + 139 + 1,
++	.htotal = 1200 + 139 + 1 + 1,
++	.vdisplay = 1920,
++	.vsync_start = 1920 + 1,
++	.vsync_end = 1920 + 59 + 1,
++	.vtotal = 1920 + 59 + 1 + 1,
++};
++
++static const struct panel_desc_dsi auo_g080uan02 = {
++	.desc = {
++		.modes = &auo_g080uan02_mode,
++		.num_modes = 1,
++		.bpc = 8,
++		.size = {
++			.width = 107,
++			.height = 172,
++		},
++		.connector_type = DRM_MODE_CONNECTOR_DSI,
++	},
++	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS,
++	.format = MIPI_DSI_FMT_RGB888,
++	.lanes = 4,
++};
++
+ static const struct drm_display_mode boe_tv080wum_nl0_mode = {
+ 	.clock = 160000,
+ 	.hdisplay = 1200,
+@@ -5754,6 +5811,9 @@ static const struct of_device_id dsi_of_match[] = {
+ 	{
+ 		.compatible = "auo,b080uan01",
+ 		.data = &auo_b080uan01
++	}, {
++		.compatible = "auo,g080uan02",
++		.data = &auo_g080uan02
+ 	}, {
+ 		.compatible = "boe,tv080wum-nl0",
+ 		.data = &boe_tv080wum_nl0
+diff --git a/drivers/net/phy/realtek/realtek_main.c b/drivers/net/phy/realtek/realtek_main.c
+index 7c3d277efaf0..1a6b65c63853 100644
+--- a/drivers/net/phy/realtek/realtek_main.c
++++ b/drivers/net/phy/realtek/realtek_main.c
+@@ -691,6 +691,12 @@ static int rtl8211f_config_init(struct phy_device *phydev)
+ 			ERR_PTR(ret));
+ 		return ret;
+ 	}
++	ret = phy_modify_paged_changed(phydev, 0xd04, 0x10, 0x4f20, 0x205b);
++	if (ret < 0) {
++		dev_err(dev, "failed to modify paged register 0xd04: %pe\n",
++			ERR_PTR(ret));
++		return ret;
++	}
+ 
+ 	return rtl8211f_config_phy_eee(phydev);
+ }
+diff --git a/sound/soc/codecs/tlv320aic3x.c b/sound/soc/codecs/tlv320aic3x.c
+index eea8ca285f8e..f0a5da4fcb17 100644
+--- a/sound/soc/codecs/tlv320aic3x.c
++++ b/sound/soc/codecs/tlv320aic3x.c
+@@ -45,6 +45,7 @@
+ #include <sound/soc.h>
+ #include <sound/initval.h>
+ #include <sound/tlv.h>
++#include <linux/clk.h>
+ 
+ #include "tlv320aic3x.h"
+ 
+@@ -88,6 +89,7 @@ struct aic3x_priv {
+ 	enum aic3x_micbias_voltage micbias_vg;
+ 	/* Output Common-Mode Voltage */
+ 	u8 ocmv;
++	struct clk *mclk;
+ };
+ 
+ static const struct reg_default aic3x_reg[] = {
+@@ -1825,11 +1827,28 @@ int aic3x_probe(struct device *dev, struct regmap *regmap, kernel_ulong_t driver
+ 		return dev_err_probe(dev, ret, "Failed to request supplies\n");
+ 
+ 	aic3x_configure_ocmv(dev, aic3x);
++	
++	aic3x->mclk = devm_clk_get(dev, "mclk"); dev_info(dev, "adlink lv codec mclk patch\n");
++	if (IS_ERR(aic3x->mclk)) {
++        	aic3x->mclk = NULL;
++            	dev_err(dev, "mclk missing or invalid\n");
++    	}
++	else
++	{
++		ret = clk_prepare_enable(aic3x->mclk);
++		if (ret < 0) {
++			dev_err(dev, "Failed to enable mclk\n");
++		}
++	}
+ 
+ 	ret = devm_snd_soc_register_component(dev, &soc_component_dev_aic3x, &aic3x_dai, 1);
+ 	if (ret)
++	{
++		if(aic3x->mclk)
++			clk_disable_unprepare(aic3x->mclk);
+ 		return ret;
+-
++	
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL(aic3x_probe);
+@@ -1837,7 +1856,8 @@ EXPORT_SYMBOL(aic3x_probe);
+ void aic3x_remove(struct device *dev)
+ {
+ 	struct aic3x_priv *aic3x = dev_get_drvdata(dev);
+-
++	if(aic3x->mclk)
++		clk_disable_unprepare(aic3x->mclk);
+ 	/* Leave the codec in reset state */
+ 	if (aic3x->gpio_reset && !aic3x->shared_reset)
+ 		gpiod_set_value(aic3x->gpio_reset, 1);
+-- 
+2.43.0
+

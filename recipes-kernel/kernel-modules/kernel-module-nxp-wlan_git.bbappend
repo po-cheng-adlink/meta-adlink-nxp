@@ -1,4 +1,7 @@
 # Copyright 2021 ADLINK Inc.
+# get pre-deprecation commit
+SRCREV = "371a047ac6345e2c49fb5d77f30ec24aa04ae765"
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI:append = " \

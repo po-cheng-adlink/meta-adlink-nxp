@@ -1,15 +1,7 @@
-FILESEXTRAPATHS:append := "${THISDIR}/${PN}:"
+# Pin firmware to pre-deprecation commit
+SRCREV = "f5002c76000214ab1b83347460bfd728d4518338"
 
-SRC_URI:append = " \
-  file://sdsd8997_combo_v4.bin \
-"
-do_install:append() { 
-
-    install -m 0644 ${WORKDIR}/sources/sdsd8997_combo_v4.bin ${D}${nonarch_base_libdir}/firmware/nxp
-
-
-}
-
-FILES:${PN}-nxp-common += " \
-    ${nonarch_base_libdir}/firmware/nxp/sdsd8997_combo_v4.bin \
+FILES:${PN} += " \
+    ${nonarch_base_libdir}/firmware/nxp/*8997* \
+    ${nonarch_libdir}/firmware/nxp/*8997* \
 "

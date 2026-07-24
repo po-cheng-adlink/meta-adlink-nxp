@@ -1,0 +1,11 @@
+/dts-v1/;
+
+#include "lec-imx95-lt9611.dts"
+
+&lpuart6 {
+    status = "disabled";
+};
+
+&lpspi7 {
+    status = "okay";
+};

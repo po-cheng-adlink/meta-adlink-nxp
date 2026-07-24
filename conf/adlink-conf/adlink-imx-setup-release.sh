@@ -54,9 +54,6 @@ if [ "$MULTILIB" = "lib32" ]; then
 	cat ../sources/meta-adlink-nxp/conf/adlink-conf/$MACHINE/multilib.local.conf.append >> ./conf/local.conf
 fi
 
-# nxp-wlan-sdk bbappend is not buildable, mask it
-echo "BBMASK += \"nxp-wlan-sdk_%.bbappend\"" >> ./conf/local.conf
-
 
 # Enable meta-eiq-genai-flow layer if ENABLE_SOME_LAYER is set
 if [ "$NEUTRON_EIQ_DEMO" = "1" ]; then

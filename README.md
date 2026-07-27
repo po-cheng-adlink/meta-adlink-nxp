@@ -30,7 +30,12 @@
 
 
 ### 3. Supported Features & Interfaces
+<details>
+<summary><strong>LEC-IMX95</strong> (Based on I-Pi SMARC Plus Carrier + LEC-IMX95 Dev Kit)</summary>
 
+Coming soon...
+
+</details>
 
 ### 4. Documentation
 

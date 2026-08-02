@@ -1,0 +1,54 @@
+Upstream-Status: Inappropriate [ADLINK board-specific LED wiring]
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Sun, 26 Jul 2026 17:22:24 +0530
+Subject: [PATCH 5/5] lec-imx8mp: dp83867: SMARC board LED configuration
+
+Configure the DP83867 LED pins for ADLINK SMARC-series boards:
+LED_0 link+activity, LED_1 100BTX, LED_2 1000BT, all active-low.
+---
+ drivers/net/phy/dp83867.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/drivers/net/phy/dp83867.c b/drivers/net/phy/dp83867.c
+index 36a0c1b7f..e020d83b7 100644
+--- a/drivers/net/phy/dp83867.c
++++ b/drivers/net/phy/dp83867.c
+@@ -887,6 +887,37 @@ static int dp83867_config_init(struct phy_device *phydev)
+ 			       mask, val);
+ 	}
+ 
++	/* LED Configuration for SMARC series boards */
++	/* Set LED pins' function - set LED_0 1011, LED_1 0110, LED_2 0101, LED_GPIO 1111 */
++	/* LED_0    1011: Link established, blink for transmit or receive activity */
++	/* LED_1    0110: 100 BTX link established */
++	/* LED_2    0101: 1000BT link established */
++	/* LED_GPIO 1111: Reserved */
++	val = phy_read(phydev, DP83867_LEDCR1);
++	if (val < 0)
++		return val;
++
++	if ((val & 0xFFFF) != 0xF56B) {
++		val &= ~0xFFFF;
++		val |= 0xF56B;
++		ret = phy_write(phydev, DP83867_LEDCR1, val);
++		if (ret)
++			return ret;
++	}
++
++	/* Control LED outputs' ability - set LED_0, LED_1, LED_2 active low, LED_GPIO reserve */
++	val = phy_read(phydev, DP83867_LEDCR2);
++	if (val < 0)
++		return val;
++
++	if ((val & 0xFFFF) != 0x0000) {
++		val &= ~0xFFFF;
++		val |= 0x0000;
++		ret = phy_write(phydev, DP83867_LEDCR2, val);
++		if (ret)
++			return ret;
++	}
++
+ 	return 0;
+ }
+ 

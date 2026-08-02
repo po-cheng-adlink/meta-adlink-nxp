@@ -1,0 +1,62 @@
+Upstream-Status: Inappropriate [ADLINK out-of-tree wifi/BT support]
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Mon, 27 Jul 2026 17:33:55 +0530
+Subject: [PATCH 10/10] lec-imx8mp: net/bt: nxp fw paths + wext ndo_do_ioctl
+ fallback
+
+- btmrvl_sdio + mwifiex sdio.h: firmware dir mrvl/ -> nxp/ (SD8997/SD8977).
+- wext-core: fall back to ndo_do_ioctl for legacy out-of-tree wifi driver.
+---
+ drivers/bluetooth/btmrvl_sdio.c             | 2 +-
+ drivers/net/wireless/marvell/mwifiex/sdio.h | 4 ++--
+ net/wireless/wext-core.c                    | 5 +++++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/bluetooth/btmrvl_sdio.c b/drivers/bluetooth/btmrvl_sdio.c
+index 93932a0d8..cdfaa2382 100644
+--- a/drivers/bluetooth/btmrvl_sdio.c
++++ b/drivers/bluetooth/btmrvl_sdio.c
+@@ -291,7 +291,7 @@ static const struct btmrvl_sdio_device btmrvl_sdio_sd8987 = {
+ 
+ static const struct btmrvl_sdio_device btmrvl_sdio_sd8997 = {
+ 	.helper         = NULL,
+-	.firmware       = "mrvl/sdsd8997_combo_v4.bin",
++	.firmware       = "nxp/sdsd8997_combo_v4.bin",
+ 	.reg            = &btmrvl_reg_89xx,
+ 	.support_pscan_win_report = true,
+ 	.sd_blksz_fw_dl = 256,
+diff --git a/drivers/net/wireless/marvell/mwifiex/sdio.h b/drivers/net/wireless/marvell/mwifiex/sdio.h
+index 65d142286..4067dc5a2 100644
+--- a/drivers/net/wireless/marvell/mwifiex/sdio.h
++++ b/drivers/net/wireless/marvell/mwifiex/sdio.h
+@@ -24,10 +24,10 @@
+ #define SD8897_DEFAULT_FW_NAME "mrvl/sd8897_uapsta.bin"
+ #define SD8887_DEFAULT_FW_NAME "mrvl/sd8887_uapsta.bin"
+ #define SD8801_DEFAULT_FW_NAME "mrvl/sd8801_uapsta.bin"
+-#define SD8977_DEFAULT_FW_NAME "mrvl/sdsd8977_combo_v2.bin"
++#define SD8977_DEFAULT_FW_NAME "nxp/sdsd8977_combo_v2.bin"
+ #define SD8978_SDIOUART_FW_NAME "mrvl/sdiouartiw416_combo_v0.bin"
+ #define SD8987_DEFAULT_FW_NAME "mrvl/sd8987_uapsta.bin"
+-#define SD8997_DEFAULT_FW_NAME "mrvl/sdsd8997_combo_v4.bin"
++#define SD8997_DEFAULT_FW_NAME "nxp/sdsd8997_combo_v4.bin"
+-#define SD8997_SDIOUART_FW_NAME "mrvl/sdiouart8997_combo_v4.bin"
++#define SD8997_SDIOUART_FW_NAME "nxp/sdsd8997_combo_v4.bin"
+ 
+ #define BLOCK_MODE	1
+diff --git a/net/wireless/wext-core.c b/net/wireless/wext-core.c
+index 7b8e94214..972667e51 100644
+--- a/net/wireless/wext-core.c
++++ b/net/wireless/wext-core.c
+@@ -982,6 +982,11 @@ static int wireless_process_ioctl(struct net *net, struct iwreq *iwr,
+ 		else if (private)
+ 			return private(dev, iwr, cmd, info, handler);
+ 	}
++
++	/* Use Old driver API : call driver ioctl handler */
++	if (dev && dev->netdev_ops && dev->netdev_ops->ndo_do_ioctl)
++		return dev->netdev_ops->ndo_do_ioctl(dev, (struct ifreq *)iwr, cmd);
++
+ 	return -EOPNOTSUPP;
+ }
+ 

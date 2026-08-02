@@ -1,0 +1,74 @@
+Upstream-Status: Pending
+
+diff --git a/board/adlink/lec-imx8mp/lec-imx8mp.c b/board/adlink/lec-imx8mp/lec-imx8mp.c
+index 916e15d0..9846e2f8 100644
+--- a/board/adlink/lec-imx8mp/lec-imx8mp.c
++++ b/board/adlink/lec-imx8mp/lec-imx8mp.c
+@@ -47,12 +47,16 @@ static void setup_gpmi_nand(void)
+ {
+ 	init_nand_clk();
+ }
+ #endif
+ 
+ #if CONFIG_IS_ENABLED(EFI_HAVE_CAPSULE_SUPPORT)
++#define IMX_BOOT_IMAGE_GUID \
++	EFI_GUID(0x928b33bc, 0xe58b, 0x4247, 0x9f, 0x1d, \
++		 0x3b, 0xf1, 0xee, 0x1c, 0xda, 0xff)
++
+ struct efi_fw_image fw_images[] = {
+ 	{
+ 		.image_type_id = IMX_BOOT_IMAGE_GUID,
+ 		.fw_name = u"IMX8MP-EVK-RAW",
+ 		.image_index = 1,
+ 	},
+@@ -348,18 +352,12 @@ static struct dwc3_device dwc3_device_data = {
+ 	.base = USB1_BASE_ADDR,
+ 	.dr_mode = USB_DR_MODE_PERIPHERAL,
+ 	.index = 0,
+ 	.power_down_scale = 2,
+ };
+ 
+-int dm_usb_gadget_handle_interrupts(struct udevice *dev)
+-{
+-	dwc3_uboot_handle_interrupt(dev);
+-	return 0;
+-}
+-
+ static void dwc3_nxp_usb_phy_init(struct dwc3_device *dwc3)
+ {
+ 	u32 RegData;
+ 
+ 	/* enable usb clock via hsio gpr */
+ 	RegData = readl(HSIO_GPR_REG_0);
+diff --git a/board/adlink/lec-imx8mp/spl.c b/board/adlink/lec-imx8mp/spl.c
+index b7b21f0b..b7ec9528 100644
+--- a/board/adlink/lec-imx8mp/spl.c
++++ b/board/adlink/lec-imx8mp/spl.c
+@@ -1,13 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+  * Copyright 2018-2019, 2021 NXP
+  *
+  */
+ 
+-#include <common.h>
+ #include <hang.h>
+ #include <init.h>
+ #include <log.h>
+ #include <spl.h>
+ #include <asm/global_data.h>
+ #include <asm/arch/imx8mp_pins.h>
+@@ -25,12 +24,13 @@
+ #include <asm/mach-imx/iomux-v3.h>
+ #include <asm/mach-imx/mxc_i2c.h>
+ #include <fsl_esdhc_imx.h>
+ #include <mmc.h>
+ #include <asm/arch/ddr.h>
+ #include <asm/sections.h>
++#include <asm/io.h>
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+ int spl_board_boot_device(enum boot_device boot_dev_spl)
+ {
+ #ifdef CONFIG_SPL_BOOTROM_SUPPORT

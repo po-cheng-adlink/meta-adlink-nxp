@@ -1,0 +1,42 @@
+Upstream-Status: Inappropriate [ADLINK LEC-i.MX8MP B1 board-specific]
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Thu, 30 Jul 2026 11:28:02 +0530
+Subject: [PATCH 12/12] lec-imx8mp: B1: ov13855 reset-pin cansleep
+
+B1 ov13855 reset GPIO is on a sleepable I2C expander; use
+gpio_set_value_cansleep() in ov13855_power_on/off (verbatim from
+upstream B1 patch 0006, applies clean to 6.18).
+---
+ drivers/media/i2c/ov13855.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/ov13855.c b/drivers/media/i2c/ov13855.c
+index c007d64c6..70ac49147 100644
+--- a/drivers/media/i2c/ov13855.c
++++ b/drivers/media/i2c/ov13855.c
+@@ -779,13 +779,13 @@ static void ov13855_power_on(int rst_gpio, int pwn_gpio)
+ 	gpio_set_value(pwn_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 
+-	gpio_set_value(rst_gpio, 0);
++	gpio_set_value_cansleep(rst_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 
+ 	gpio_set_value(pwn_gpio, 1);
+ 	usleep_range(3000, 5000);
+ 
+-	gpio_set_value(rst_gpio, 1);
++	gpio_set_value_cansleep(rst_gpio, 1);
+ 	usleep_range(3000, 5000);
+ 
+ 	/* 8192 cycles prior to first SCCB transaction */
+@@ -797,7 +797,7 @@ static void ov13855_power_on(int rst_gpio, int pwn_gpio)
+ static void ov13855_power_off(int rst_gpio, int pwn_gpio)
+ {
+ 	msleep(10);
+-	gpio_set_value(rst_gpio, 0);
++	gpio_set_value_cansleep(rst_gpio, 0);
+ 	usleep_range(3000, 5000);
+ 	gpio_set_value(pwn_gpio, 0);
+ 	usleep_range(3000, 5000);

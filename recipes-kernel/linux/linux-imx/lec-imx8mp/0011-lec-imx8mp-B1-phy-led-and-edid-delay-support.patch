@@ -1,0 +1,43 @@
+Upstream-Status: Inappropriate [ADLINK LEC-i.MX8MP B1 board-specific]
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Thu, 30 Jul 2026 11:27:49 +0530
+Subject: [PATCH 11/12] lec-imx8mp: B1: phy led and edid delay support
+
+- dw-hdmi.c: add 150ms delay before EDID read.
+- dp83867.c: SMARC LED LEDCR2 value 0x0000 -> 0x444 (on top of the
+  non-B1 SMARC LED block).
+---
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 2 ++
+ drivers/net/phy/dp83867.c                 | 4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 08484d052..4d411b2ba 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -2479,6 +2479,8 @@ static const struct drm_edid *dw_hdmi_edid_read(struct dw_hdmi *hdmi,
+ 	if (!hdmi->ddc)
+ 		return NULL;
+ 
++	pr_info("delay 150ms before get edid to waiting for display edid ready!\n");
++	msleep(150);
+ 	drm_edid = drm_edid_read_ddc(connector, hdmi->ddc);
+ 	if (!drm_edid) {
+ 		dev_dbg(hdmi->dev, "failed to get edid\n");
+diff --git a/drivers/net/phy/dp83867.c b/drivers/net/phy/dp83867.c
+index e020d83b7..d76a7aad3 100644
+--- a/drivers/net/phy/dp83867.c
++++ b/drivers/net/phy/dp83867.c
+@@ -910,9 +910,9 @@ static int dp83867_config_init(struct phy_device *phydev)
+ 	if (val < 0)
+ 		return val;
+ 
+-	if ((val & 0xFFFF) != 0x0000) {
++	if ((val & 0xFFFF) != 0x444) {
+ 		val &= ~0xFFFF;
+-		val |= 0x0000;
++		val |= 0x444;
+ 		ret = phy_write(phydev, DP83867_LEDCR2, val);
+ 		if (ret)
+ 			return ret;

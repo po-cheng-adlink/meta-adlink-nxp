@@ -6,3 +6,5 @@
 #WIC_SRC_ROOTFS = "--source rootfs"
 
 DEPENDS += "e2fsprogs-native dosfstools-native mtools-native parted-native gptfdisk-native"
+
+IMAGE_INSTALL:append:lec-imx8mp = " adlink-docker-config"

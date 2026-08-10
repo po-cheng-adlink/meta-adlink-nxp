@@ -1,4 +1,4 @@
-## Scarthgap
+## Wrynose
 
 - Kernel version: 6.18.x
 - Kernel support by Adlink(continuing).

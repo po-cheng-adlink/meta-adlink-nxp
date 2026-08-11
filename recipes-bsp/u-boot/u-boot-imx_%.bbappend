@@ -16,6 +16,7 @@ do_copy_source () {
     if [ -f ${WORKDIR}/${MACHINE}/${config} ]; then
       bbnote "copy u-boot config: ${config} to ${S}/configs/"
       cp -f ${WORKDIR}/${MACHINE}/${config} ${S}/configs/
+      confarch=$(grep "CONFIG_ARCH_IMX" ${S}/configs/${config} | cut -d'=' -f1)
     fi
   done
   for dtbname in ${dtbes}; do
@@ -24,12 +25,8 @@ do_copy_source () {
       bbnote "copy u-boot dts: ${dtsname} to ${S}/arch/arm/dts/"
       cp -f ${WORKDIR}/${MACHINE}/${dtsname} ${S}/arch/arm/dts/
       if ! grep -q ${dtbname} ${S}/arch/arm/dts/Makefile; then
-        bbnote "modify ${S}/arch/arm/dts/Makefile: add ${dtbname}"
-	if [ "${MACHINE}" = "lec-imx95" ] || [ "${MACHINE}" = "osm-imx93" ] || [ "${MACHINE}" = "osm-imx95" ]; then
-        sed -e 's,dtb-$(CONFIG_ARCH_IMX9) += \\,dtb-$(CONFIG_ARCH_IMX9) += \\\n\t'${dtbname}' \\,g' -i ${S}/arch/arm/dts/Makefile
-        else
-         sed -e 's,dtb-$(CONFIG_ARCH_IMX8M) += \\,dtb-$(CONFIG_ARCH_IMX8M) += \\\n\t'${dtbname}' \\,g' -i ${S}/arch/arm/dts/Makefile
-         fi
+        bbnote "modify ${S}/arch/arm/dts/Makefile: add ${dtbname} to dtb-\$(${confarch})"
+        echo "dtb-\$(${confarch}) += ${dtbname}" >> ${S}/arch/arm/dts/Makefile
       fi
     fi
   done

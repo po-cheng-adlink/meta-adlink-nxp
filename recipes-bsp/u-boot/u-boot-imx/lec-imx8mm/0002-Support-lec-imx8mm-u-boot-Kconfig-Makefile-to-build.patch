@@ -1,0 +1,41 @@
+From 23d5bfd849b5bec97c96a94269c0b93a07ffdc64 Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Wed, 5 Aug 2026 15:16:42 +0530
+Subject: [PATCH 2/3] lec-imx8mm: register TARGET_LEC_IMX8MM in imx8m Kconfig
+
+Re-anchored for U-Boot 2026.04: the TARGET_IMX8MQ_CM anchor moved 75->86
+and the board source list 482->608. Content is unchanged from ADLINK's
+scarthgap 0002.
+
+Upstream-Status: Inappropriate [board-specific]
+---
+ arch/arm/mach-imx/imx8m/Kconfig | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/mach-imx/imx8m/Kconfig b/arch/arm/mach-imx/imx8m/Kconfig
+index 5d86ee22..e2e3500b 100644
+--- a/arch/arm/mach-imx/imx8m/Kconfig
++++ b/arch/arm/mach-imx/imx8m/Kconfig
+@@ -88,6 +88,12 @@ config TARGET_IMX8MQ_CM
+ 	select IMX8MQ
+ 	select IMX8M_LPDDR4
+ 
++config TARGET_LEC_IMX8MM
++	bool "Adlink lec-imx8mm LPDDR4 board"
++	select IMX8MM
++	select SUPPORT_SPL
++	select IMX8M_LPDDR4
++
+ config TARGET_IMX8MQ_EVK
+ 	bool "imx8mq_evk"
+ 	select IMX8MQ
+@@ -606,5 +612,6 @@ source "board/variscite/imx8mn_var_som/Kconfig"
+ source "board/toradex/smarc-imx8mp/Kconfig"
+ source "board/toradex/verdin-imx8mm/Kconfig"
+ source "board/toradex/verdin-imx8mp/Kconfig"
++source "board/adlink/lec-imx8mm/Kconfig"
+ 
+ endif
+-- 
+2.53.0
+

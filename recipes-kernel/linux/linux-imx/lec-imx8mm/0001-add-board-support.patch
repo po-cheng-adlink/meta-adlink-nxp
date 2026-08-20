@@ -1,0 +1,23 @@
+From f48c6ea00a29a035299a8e7f7dc1b6f2ec455d56 Mon Sep 17 00:00:00 2001
+From: aravindlal <aravindlal.mh@adlinktech.com>
+Date: Fri, 14 Aug 2026 18:19:58 +0530
+Subject: [PATCH] add board support
+Upstream-Status: Inappropriate [vendor board support]
+---
+ arch/arm64/boot/dts/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/Makefile b/arch/arm64/boot/dts/Makefile
+index b0844404eda1..e077277708e8 100644
+--- a/arch/arm64/boot/dts/Makefile
++++ b/arch/arm64/boot/dts/Makefile
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ subdir-y += actions
++subdir-y += adlink
+ subdir-y += airoha
+ subdir-y += allwinner
+ subdir-y += altera
+-- 
+2.43.0
+

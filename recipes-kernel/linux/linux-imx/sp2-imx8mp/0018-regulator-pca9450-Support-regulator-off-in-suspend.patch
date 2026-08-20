@@ -1,0 +1,156 @@
+From c2573ab65b9f670953c3f5cda971913d24dbe3fd Mon Sep 17 00:00:00 2001
+From: "po.cheng" <po.cheng@adlinktech.com>
+Date: Thu, 20 Aug 2026 10:00:29 +0800
+Subject: [PATCH] regulator: pca9450: Support regulator-off-in-suspend
+
+Upstream-Status: Backport [https://patchew.org/linux/20260724201322.73937-1-festevam@gmail.com/]
+
+Signed-off-by: po.cheng <po.cheng@adlinktech.com>
+---
+ drivers/regulator/pca9450-regulator.c | 45 +++++++++++++++++++++++----
+ include/linux/regulator/pca9450.h     |  3 ++
+ 2 files changed, 42 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/regulator/pca9450-regulator.c b/drivers/regulator/pca9450-regulator.c
+index e7408598cd79e..9ecd754d78723 100644
+--- a/drivers/regulator/pca9450-regulator.c
++++ b/drivers/regulator/pca9450-regulator.c
+@@ -18,6 +18,9 @@
+ #include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/pca9450.h>
+ 
++static int pca9450_buck_set_suspend_disable(struct regulator_dev *rdev);
++static int pca9450_ldo_set_suspend_disable(struct regulator_dev *rdev);
++
+ struct pc9450_dvs_config {
+ 	unsigned int run_reg; /* dvs0 */
+ 	unsigned int run_mask;
+@@ -78,6 +81,7 @@ static const struct regulator_ops pca9450_dvs_buck_regulator_ops = {
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+ 	.set_voltage_time_sel = regulator_set_voltage_time_sel,
+ 	.set_ramp_delay	= regulator_set_ramp_delay_regmap,
++	.set_suspend_disable = pca9450_buck_set_suspend_disable,
+ };
+ 
+ static const struct regulator_ops pca9450_buck_regulator_ops = {
+@@ -88,6 +92,7 @@ static const struct regulator_ops pca9450_buck_regulator_ops = {
+ 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+ 	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++	.set_suspend_disable = pca9450_buck_set_suspend_disable,
+ };
+ 
+ static const struct regulator_ops pca9450_ldo_regulator_ops = {
+@@ -99,6 +104,16 @@ static const struct regulator_ops pca9450_ldo_regulator_ops = {
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+ };
+ 
++static const struct regulator_ops pca9450_ldo_suspend_regulator_ops = {
++	.enable = regulator_enable_regmap,
++	.disable = regulator_disable_regmap,
++	.is_enabled = regulator_is_enabled_regmap,
++	.list_voltage = regulator_list_voltage_linear_range,
++	.set_voltage_sel = regulator_set_voltage_sel_regmap,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_suspend_disable = pca9450_ldo_set_suspend_disable,
++};
++
+ /*
+  * BUCK1/2/3
+  * 0.60 to 2.1875V (12.5mV step)
+@@ -212,6 +227,24 @@ static int pca9450_set_dvs_levels(struct device_node *np,
+ 	return ret;
+ }
+ 
++/*
++ * ENMODE = 10b keeps the regulator enabled in RUN mode and disables it
++ * while PMIC_STBY_REQ is asserted.
++ */
++static int pca9450_buck_set_suspend_disable(struct regulator_dev *rdev)
++{
++	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
++				  rdev->desc->enable_mask,
++				  BUCK_ENMODE_ONREQ_STBYREQ);
++}
++
++static int pca9450_ldo_set_suspend_disable(struct regulator_dev *rdev)
++{
++	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
++				  rdev->desc->enable_mask,
++				  LDO_ENMODE_ONREQ_STBYREQ);
++}
++
+ static const struct pca9450_regulator_desc pca9450a_regulators[] = {
+ 	{
+ 		.desc = {
+@@ -402,7 +435,7 @@ static const struct pca9450_regulator_desc pca9450a_regulators[] = {
+ 			.of_match = of_match_ptr("LDO3"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO3,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO3_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+@@ -420,7 +453,7 @@ static const struct pca9450_regulator_desc pca9450a_regulators[] = {
+ 			.of_match = of_match_ptr("LDO4"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO4,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO4_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+@@ -616,7 +649,7 @@ static const struct pca9450_regulator_desc pca9450bc_regulators[] = {
+ 			.of_match = of_match_ptr("LDO3"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO3,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO3_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+@@ -634,7 +667,7 @@ static const struct pca9450_regulator_desc pca9450bc_regulators[] = {
+ 			.of_match = of_match_ptr("LDO4"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO4,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO4_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+@@ -824,7 +857,7 @@ static const struct pca9450_regulator_desc pca9451a_regulators[] = {
+ 			.of_match = of_match_ptr("LDO3"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO3,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO3_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+@@ -842,7 +875,7 @@ static const struct pca9450_regulator_desc pca9451a_regulators[] = {
+ 			.of_match = of_match_ptr("LDO4"),
+ 			.regulators_node = of_match_ptr("regulators"),
+ 			.id = PCA9450_LDO4,
+-			.ops = &pca9450_ldo_regulator_ops,
++			.ops = &pca9450_ldo_suspend_regulator_ops,
+ 			.type = REGULATOR_VOLTAGE,
+ 			.n_voltages = PCA9450_LDO4_VOLTAGE_NUM,
+ 			.linear_ranges = pca9450_ldo34_volts,
+diff --git a/include/linux/regulator/pca9450.h b/include/linux/regulator/pca9450.h
+index 256c360a093ac..4dbdb65e39108 100644
+--- a/include/linux/regulator/pca9450.h
++++ b/include/linux/regulator/pca9450.h
+@@ -210,6 +210,9 @@ enum {
+ #define LDO5H_EN_MASK			0xC0
+ #define LDO5HOUT_MASK			0x0F
+ 
++/* LDO ENMODE value: ON in RUN, OFF while PMIC_STBY_REQ is asserted */
++#define LDO_ENMODE_ONREQ_STBYREQ	0x80
++
+ /* PCA9450_REG_IRQ bits */
+ #define IRQ_PWRON			0x80
+ #define IRQ_WDOGB			0x40
+-- 
+2.34.1
+

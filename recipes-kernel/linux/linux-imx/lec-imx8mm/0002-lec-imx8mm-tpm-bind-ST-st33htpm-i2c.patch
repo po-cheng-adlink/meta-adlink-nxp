@@ -1,0 +1,33 @@
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Subject: [PATCH] tpm_tis_i2c: bind ST ST33HTPH2X32AHD5 on LEC-iMX8MM
+
+The board carries an ST ST33HTPH2X32AHD5 TPM 2.0 on i2c3@0x2e, described
+as compatible "st,st33htpm-i2c". Add that compatible to the generic TIS
+I2C driver's match table so the chip binds.
+
+Reconcile of scarthgap 0002 onto Linux 6.18. The original also wrapped
+large parts of tpm-interface.c / tpm_tis_core.c in #ifdef CONFIG_TCG_TIS_I2C
+and added a config ADLINK_LECIMX8MM symbol to init/Kconfig. Both are
+dropped as dead code: the defconfig sets CONFIG_TCG_TIS_I2C=m, which
+defines CONFIG_TCG_TIS_I2C_MODULE and not CONFIG_TCG_TIS_I2C, so those
+blocks never compiled in ADLINK's own build either; and ADLINK_LECIMX8MM
+is referenced by nothing in the series. This board's DT has no
+default-guard-time property, so the 8MP guard-time handling is not needed.
+
+Upstream-Status: Pending
+
+Signed-off-by: Asuvath MS <asuvath.monikandan@adlinktech.com>
+---
+ drivers/char/tpm/tpm_tis_i2c.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/char/tpm/tpm_tis_i2c.c
++++ b/drivers/char/tpm/tpm_tis_i2c.c
+@@ -383,6 +383,7 @@ MODULE_DEVICE_TABLE(i2c, tpm_tis_i2c_id);
+ #ifdef CONFIG_OF
+ static const struct of_device_id of_tis_i2c_match[] = {
+ 	{ .compatible = "infineon,slb9673", },
++	{ .compatible = "st,st33htpm-i2c", },
+ 	{ .compatible = "nuvoton,npct75x", },
+ 	{ .compatible = "tcg,tpm-tis-i2c", },
+ 	{}

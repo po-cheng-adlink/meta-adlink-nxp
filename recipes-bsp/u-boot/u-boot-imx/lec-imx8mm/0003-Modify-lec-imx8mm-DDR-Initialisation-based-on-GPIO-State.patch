@@ -1,0 +1,99 @@
+From 7c3a844f8c3bb2c2ef3e7c804ef0d81497a35e7a Mon Sep 17 00:00:00 2001
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Date: Thu, 6 Aug 2026 10:54:22 +0530
+Subject: [PATCH] lec-imx8mm: size DRAM from the GPIO3 SKU straps
+
+The LEC-iMX8MM SOM ships in 512MB/1G/2G/4G variants, strapped on GPIO3
+bits 6 and 9. Reconciled from ADLINK's scarthgap 0003 for U-Boot 2026.04.
+
+Only board_phys_sdram_size() is overridden. The original also rewrote
+imx8m_mem_map[] from inside imx8m_find_dram_entry_in_mem_map(), including
+a write to entry [i+1]; that must NOT be carried to 2026.04:
+
+ - 2026.04 added early_enable_caches(), called from arch_cpu_init(), which
+   sizes the DRAM1 entry itself via max(board_phys_sdram_size(), 3GB) and
+   maps it into a fixed 64KB early TLB. enable_caches() then rebuilds the
+   map entries outright from gd->bd->bi_dram[]. Both callers therefore
+   overwrite whatever the lookup helper set, so the sizing there is dead
+   code - but the [i+1] write is not: it lands on the spare terminator
+   entry that enable_caches() reserves for the OP-TEE bank split, turning
+   it into a bogus mapping and overflowing the early TLB. On scarthgap
+   this was harmless because the MMU was still off during board_f.
+
+ - for the same reason PHYS_SDRAM_2/_SIZE must stay undefined (NXP's own
+   imx8mm_evk.h does not define them either): DRAM1 is already sized to
+   cover the full 4GB, so a second entry only overlaps it.
+
+Also kept CFG_SYS_SDRAM_BASE (the original reverted it to the legacy
+CONFIG_ name, which resolved only because the board header defined both;
+this file is shared by every i.MX8M board), and dropped the
+common/board_info.c hunk, which called get_dram_sku() with no declaration
+in scope and #if 0'd out try_sysinfo() plus the FDT model lookup for every
+board in the tree.
+
+Upstream-Status: Inappropriate [board-specific]
+---
+ arch/arm/mach-imx/imx8m/soc.c | 39 +++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-imx/imx8m/soc.c b/arch/arm/mach-imx/imx8m/soc.c
+index e6a76736..44e1f829 100644
+--- a/arch/arm/mach-imx/imx8m/soc.c
++++ b/arch/arm/mach-imx/imx8m/soc.c
+@@ -59,6 +59,27 @@ struct imx_fuse const imx_field_return_fuse = {
+ };
+ #endif
+ 
++/*
++ * The LEC-iMX8MM SOM ships in 512MB/1G/2G/4G variants; the fitted size is
++ * strapped on GPIO3 bits 6 and 9, read directly here because this runs before
++ * the GPIO driver is available.
++ */
++#define GPIO3_DR_ADDR	0x30220000
++#define SKU_CFG1	6
++#define SKU_CFG2	9
++
++static int get_dram_sku(void)
++{
++	int dram_sku_cfg1, dram_sku_cfg2;
++	unsigned int dram_sku_data;
++
++	dram_sku_data = readl(GPIO3_DR_ADDR);
++	dram_sku_cfg1 = (dram_sku_data >> SKU_CFG1) & 0x1;
++	dram_sku_cfg2 = (dram_sku_data >> SKU_CFG2) & 0x1;
++
++	return (dram_sku_cfg1 << 1) | dram_sku_cfg2;
++}
++
+ int timer_init(void)
+ {
+ #if IS_ENABLED(CONFIG_XPL_BUILD)
+@@ -261,11 +282,21 @@ __weak int board_phys_sdram_size(phys_size_t *size)
+ 	if (!size)
+ 		return -EINVAL;
+ 
+-	*size = PHYS_SDRAM_SIZE;
++	switch (get_dram_sku()) {
++	case 3:	/* 4GB */
++		*size = 0x100000000;
++		break;
++	case 2:	/* 2GB */
++		*size = 0x80000000;
++		break;
++	case 1:	/* 1GB */
++		*size = 0x40000000;
++		break;
++	default: /* 512MB */
++		*size = 0x20000000;
++		break;
++	}
+ 
+-#ifdef PHYS_SDRAM_2_SIZE
+-	*size += PHYS_SDRAM_2_SIZE;
+-#endif
+ 	return 0;
+ }
+ 
+-- 
+2.53.0
+

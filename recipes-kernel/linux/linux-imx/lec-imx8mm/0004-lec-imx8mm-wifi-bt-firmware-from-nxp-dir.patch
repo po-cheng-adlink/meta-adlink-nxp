@@ -1,0 +1,65 @@
+From: Asuvath MS <asuvath.monikandan@adlinktech.com>
+Subject: [PATCH] mwifiex/btmrvl: load SD8997/SD8977 firmware from nxp/
+
+NXP ships the SD8997/SD8977 combo blobs under /lib/firmware/nxp/ while
+the in-tree drivers look in mrvl/, so firmware download fails. Observed
+on the board as:
+  mwifiex_sdio mmc0:0001:1: info: _mwifiex_fw_dpc: unregister device
+  Bluetooth: Downloading firmware failed!
+
+Reconcile of scarthgap 0004 onto 6.18; matches the 8MP port. Both 6.6.23
+and 6.18 ship mrvl/, so there is no upstream drift here.
+
+Two parts of the original are deliberately NOT carried:
+  - A dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32)) inserted into
+    dma_alloc_attrs() in kernel/dma/mapping.c. That is the shared
+    allocator for every driver, so it would clamp all devices to 32-bit
+    DMA on every allocation, overriding drivers that correctly declare
+    64-bit - and the 4GB SKU has a bank at 0x100000000. Its placement
+    just above WARN_ON_ONCE(!dev->coherent_dma_mask) suggests it exists
+    to silence that warning for a driver that never set a mask; the fix
+    belongs in that driver.
+  - Repointing SD8997_SDIOUART_FW_NAME at the sdsd (SDIO-SDIO) blob,
+    which looks like a copy-paste slip: this board has BT on uart1, so
+    the sdiouart variant is the plausible one. Left untouched pending
+    the out-of-tree nxp-wlan/bt-sd8997 firmware package.
+
+Upstream-Status: Inappropriate [vendor firmware layout]
+
+Signed-off-by: Asuvath MS <asuvath.monikandan@adlinktech.com>
+---
+ drivers/bluetooth/btmrvl_sdio.c             | 4 ++--
+ drivers/net/wireless/marvell/mwifiex/sdio.h | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- a/drivers/bluetooth/btmrvl_sdio.c
++++ b/drivers/bluetooth/btmrvl_sdio.c
+@@ -291,7 +291,7 @@
+ 
+ static const struct btmrvl_sdio_device btmrvl_sdio_sd8997 = {
+ 	.helper         = NULL,
+-	.firmware       = "mrvl/sdsd8997_combo_v4.bin",
++	.firmware       = "nxp/sdsd8997_combo_v4.bin",
+ 	.reg            = &btmrvl_reg_89xx,
+ 	.support_pscan_win_report = true,
+ 	.sd_blksz_fw_dl = 256,
+@@ -1778,4 +1778,4 @@
+ MODULE_FIRMWARE("mrvl/sd8897_uapsta.bin");
+ MODULE_FIRMWARE("mrvl/sdsd8977_combo_v2.bin");
+ MODULE_FIRMWARE("mrvl/sd8987_uapsta.bin");
+-MODULE_FIRMWARE("mrvl/sdsd8997_combo_v4.bin");
++MODULE_FIRMWARE("nxp/sdsd8997_combo_v4.bin");
+--- a/drivers/net/wireless/marvell/mwifiex/sdio.h
++++ b/drivers/net/wireless/marvell/mwifiex/sdio.h
+@@ -24,9 +24,9 @@
+ #define SD8897_DEFAULT_FW_NAME "mrvl/sd8897_uapsta.bin"
+ #define SD8887_DEFAULT_FW_NAME "mrvl/sd8887_uapsta.bin"
+ #define SD8801_DEFAULT_FW_NAME "mrvl/sd8801_uapsta.bin"
+-#define SD8977_DEFAULT_FW_NAME "mrvl/sdsd8977_combo_v2.bin"
++#define SD8977_DEFAULT_FW_NAME "nxp/sdsd8977_combo_v2.bin"
+ #define SD8978_SDIOUART_FW_NAME "mrvl/sdiouartiw416_combo_v0.bin"
+ #define SD8987_DEFAULT_FW_NAME "mrvl/sd8987_uapsta.bin"
+-#define SD8997_DEFAULT_FW_NAME "mrvl/sdsd8997_combo_v4.bin"
++#define SD8997_DEFAULT_FW_NAME "nxp/sdsd8997_combo_v4.bin"
+ #define SD8997_SDIOUART_FW_NAME "mrvl/sdiouart8997_combo_v4.bin"
+ 

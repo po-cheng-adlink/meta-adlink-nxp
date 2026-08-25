@@ -18,9 +18,9 @@ RELEASE_VERSION ?= "${@'v%s' % (lambda dt: (dt.date.today().__str__()))(__import
 INHERIT += "extrausers"
 EXTRA_USERS_PARAMS = " \
 useradd -p '$(openssl passwd adlink)' adlink; \
-usermod -a -G sudo,users,plugdev,docker adlink; \
+usermod -a -G root,sudo,users,input,dialout,plugdev,tty,disk,docker adlink; \
 "
-EXTRA_USERS_PARAMS:append = " usermod -a -G video,render,wayland,input,root,sudo,dialout,dialout,tty,disk -p '$(openssl passwd weston)' weston;"
+EXTRA_USERS_PARAMS:append = " usermod -a -G video,render,wayland,input,root,sudo,dialout,plugdev,tty,disk -p '$(openssl passwd weston)' weston;"
 
 KERNEL_MODULE_AUTOLOAD:append = "${@bb.utils.contains('MACHINE_FEATURES', 'wifi', ' mlan moal', '', d)}"
 

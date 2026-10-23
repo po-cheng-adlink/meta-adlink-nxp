@@ -65,8 +65,9 @@ do_configure:prepend () {
   #     LPDDR4_2GB, LPDDR4_2GK, LPDDR4_4GB, LPDDR4_8GB
   configs=$(echo "${UBOOT_MACHINE}" | xargs)
   extras=$(echo "${UBOOT_EXTRA_CONFIGS}" | xargs)
-  bbnote "add ${extras} to ${configs}"
-  for extra in ${extras}; do
+  readarray -t extras_arr < <(xargs -n1 <<< "${extras}")
+  bbnote "add ${extras_arr[@]} to ${configs}"
+  for extra in ${extras_arr[@]}; do
     if [ -n $extra ]; then
       for config in $configs; do
         if [ -f ${S}/configs/${config} ]; then
@@ -74,6 +75,10 @@ do_configure:prepend () {
           NO_*)
             upper=$(echo ${extra#NO_} | tr '[:lower:]' '[:upper:]')
             echo "CONFIG_${upper##CONFIG_}=n" | tee -a ${S}/configs/${config}
+            ;;
+          *=*)
+            upper=$(echo ${extra} | tr '[:lower:]' '[:upper:]')
+            echo "CONFIG_${upper##CONFIG_}" | tee -a ${S}/configs/${config}
             ;;
           *)
             upper=$(echo ${extra} | tr '[:lower:]' '[:upper:]')

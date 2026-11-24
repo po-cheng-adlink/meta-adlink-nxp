@@ -5,5 +5,3 @@
 #
 IMAGE_FSTYPES:sota = "${INITRAMFS_FSTYPES}"
 IMAGE_FSTYPES:remove:sota = "wic wic.md5sum"
-EXTRA_USERS_PARAMS:sota = ""
-

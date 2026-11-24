@@ -18,9 +18,10 @@ RELEASE_VERSION ?= "${@'v%s' % (lambda dt: (dt.date.today().__str__()))(__import
 # Set user account and password (for yocto images, e.g. core-image-xxx)
 # clear password deprecated, gen password with 'openssl passwd P4SsW0rD'
 INHERIT += "extrausers"
+# $(openssl passwd adlink) => $1$Qt8ygBR7$kzWSqoq6eK5ceAhxlpFlB1
 EXTRA_USERS_PARAMS = " \
-useradd -p '$(openssl passwd adlink)' adlink; \
-usermod -a -G root,sudo,users,plugdev,input,tty,disk,docker adlink; \
+useradd -p '\$1\$Qt8ygBR7\$kzWSqoq6eK5ceAhxlpFlB1' adlink; \
+groupadd -rf docker; usermod -a -G root,sudo,users,plugdev,input,tty,disk,docker adlink; \
 "
 
 IMAGE_FEATURES += "empty-root-password"
@@ -28,5 +29,6 @@ IMAGE_FSTYPES += " wic.bmap wic.gz"
 
 PACKAGECONFIG:append:pn-python3 = " tk"
 
-EXTRA_USERS_PARAMS:append = " usermod -a -G video,render,wayland,input,root,sudo,dialout,dialout,tty,disk -p '$(openssl passwd weston)' weston;"
+# $(openssl passwd weston) => $1$PAjrvG0E$VH8TFeap2kju8uUL1wPxH0
+EXTRA_USERS_PARAMS:append = " groupadd -rf wayland; usermod -a -G video,render,wayland,input,root,sudo,dialout,plugdev,tty,disk -p '\$1\$PAjrvG0E\$VH8TFeap2kju8uUL1wPxH0' weston;"
 

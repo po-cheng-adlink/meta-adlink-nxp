@@ -1,0 +1,8 @@
+VIRTUAL-RUNTIME_obmc-sensors-hwmon ?= "dbus-sensors"
+VIRTUAL-RUNTIME_obmc-fan-control ?= ""
+VIRTUAL-RUNTIME_obmc-inventory-manager ?= "entity-manager"
+VIRTUAL-RUNTIME_obmc-chassis-state-manager ?= ""
+VIRTUAL-RUNTIME_obmc-fan-presence ?= ""
+VIRTUAL-RUNTIME_obmc-discover-system-state ?= ""
+VIRTUAL-RUNTIME_obmc-bmc-state-manager ?= ""
+VIRTUAL-RUNTIME_obmc-host-state-manager ?= ""

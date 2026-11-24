@@ -29,3 +29,5 @@ CONFIG_BOOTCOUNT_LIMIT \
 CONFIG_BOOTCOUNT_ENV \
 CONFIG_BOOTCOUNT_BOOTLIMIT=3 \
 CONFIG_BOOTCOUNT_ALTBOOTCMD="setenv ostree_rollback 1; run bootcmd"'
+
+OBMC_ORG_YAML_SUBDIRS += " org/freedesktop xyz/openbmc_project"
